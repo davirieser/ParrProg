@@ -157,7 +157,7 @@ int main() {
 	end = clock();
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-	printf("Pi: %2.4f\n", pi);
+	printf("Pi: %lf\n", pi);
 	printf("time: %2.4f seconds\n", cpu_time_used);
 }
 
