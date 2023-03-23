@@ -136,14 +136,15 @@ double monte_carlo_fixed_iter(unsigned long samples) {
 }
 
 int main() {
-
+	double pi;
+/*
 	printf("VARIANT: %d\n", VARIANT);
 
 	clock_t start, end;
-	double cpu_time_used, pi;
+	double cpu_time_used;
 
 	start = clock();
-
+*/
 #if VARIANT == SERIAL
 	pi = monte_carlo_serial(NUM_SAMPLES);
 #elif VARIANT == SEMAPHORE
@@ -153,11 +154,12 @@ int main() {
 #else
 	exit(1);
 #endif
-
+/*
 	end = clock();
 	cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
 	printf("Pi: %lf\n", pi);
 	printf("time: %2.4f seconds\n", cpu_time_used);
+*/
 }
 
