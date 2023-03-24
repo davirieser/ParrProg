@@ -7,5 +7,5 @@ all: mandelbrot
 clean:
 	$(RM) mandelbrot mandelbrot.png
 
-mandelbrot: 01.c
-	$(CC) -o mandelbrot 01.c
+mandelbrot: 01.cpp
+	g++ -o mandelbrot 01.cpp

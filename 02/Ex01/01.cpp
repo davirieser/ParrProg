@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "../../includes/TimeMeasure.cpp"
+#include "../../includes/CSVHandler.cpp"
+
 // Include that allows to print result as an image
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -40,7 +43,15 @@ void calc_mandelbrot(uint8_t image[Y][X]) {
 int main() {
 	uint8_t image[Y][X];
 
+	const char* header[] = {"CPU Time", "User Time"};
+	MyCSVHandler csvHandler("time.csv", header, 2);
+	cpuTimeMeasure.setTimer();
+	userTimeMeasure.setTimer();
+
 	calc_mandelbrot(image);
+
+	double values_f[]  = {cpuTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs()};
+	csvHandler.writeValues(NULL, 0, values_f, 2);
 
 	const int channel_nr = 1, stride_bytes = 0;
 	stbi_write_png("mandelbrot.png", X, Y, channel_nr, image, stride_bytes);
