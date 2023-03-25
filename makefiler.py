@@ -4,7 +4,7 @@ import os
 import fnmatch
 import toml
 
-default_compile_flags = " -std=c11 -Wall -Werror --shared -fPIC"
+default_compile_flags = " -std=c11 -Wall -Werror"
 MAKE = "$(MAKE) -e --no-print-directory"
 
 # https://stackoverflow.com/a/1724723
@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
             links = [f"-{x}" for x in task_details.get("links", [])]
             opt = task_details.get("optimization_levels", ["0", "3", "fast"])
-            profiler = task_details.get("profiler", "")
+            profiler = task_details.get("profiler", "") 
 
             flags = task_details.get("Flags", {}).items()
             envs = task_details.get("Env", {}).items()
@@ -99,6 +99,7 @@ if __name__ == "__main__":
             if (src_file == None):
                 break;
 
+            profiler = task_details.get("profiler", "") 
             opt = task_details.get('optimization_flags', ["0", "3", "fast"]);
 
             flags = task_details.get("Flags", {}).items()
@@ -143,6 +144,11 @@ if __name__ == "__main__":
                 f.write(f".PHONY: {task_name}_{env_name}\n{task_name}_{env_name}:\n\t$(foreach val,$({task_name}_{env_name}_VALUES), COMPILE_FILE={src_file} EXE_FILE={remove_file_ending(src_file)} {task_name}_{env_name}=$(val) {MAKE} run_{task_name};)\n")
                 f.write("\n")
 
+            if (profiler == ""):
+                profiler_flags = ""
+            else:
+                profiler_flags = "--shared -fPIC"
+
             f.write(f".PHONY: compile_{task_name}\ncompile_{task_name}:\n")
-            f.write(f"\tgcc $(COMPILE_FILE) -o $(EXE_FILE) $({task_name}_CFLAGS) $({task_name}_OPTIMIZATION_LEVEL) {' '.join(comp_flags)}\n\n")
+            f.write(f"\tgcc $(COMPILE_FILE) -o $(EXE_FILE) $({task_name}_CFLAGS) {profiler_flags} $({task_name}_OPTIMIZATION_LEVEL) {' '.join(comp_flags)}\n\n")
 
