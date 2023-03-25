@@ -1,18 +1,19 @@
 
 #define _GNU_SOURCE
 
-#include "stdlib.h"
-#include "stdio.h"
-#include "stdint.h"
-#include "time.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 
+#include <fcntl.h>
+#include <unistd.h>
 #include "dlfcn.h"
 #include "sys/time.h"
+#include "time.h"
 
 int time_program(char * program) {
     struct timeval t1, t2;
 	clock_t start_t, end_t;
-	double total_t;
     double elapsed_time, cpu_time;
 
     // Try to open the Library
@@ -51,9 +52,23 @@ int time_program(char * program) {
 
     // compute and print the elapsed time in millisec
     elapsed_time = (t2.tv_sec - t1.tv_sec);  
-    elapsed_time += (t2.tv_usec - t1.tv_usec);
+    elapsed_time += ((double) (t2.tv_usec - t1.tv_usec)) / 10000000;
 
-    printf("CPU Time: %f s. Real time: %f s. Return Code: %d\n", cpu_time, elapsed_time, ret);
+	int pfd;
+	if ((pfd = open("log.csv", O_APPEND | O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1) {
+		perror("Cannot open output file\n"); 
+		return EXIT_FAILURE;
+	}
+
+	char * str;
+	int len = asprintf(&str, "%s, %f s, %f s, %d\n", program, cpu_time, elapsed_time, ret);
+	if (write(pfd, str, len) == -1) {
+		perror("Could not write to Output File\n"); 
+		return EXIT_FAILURE;
+	}
+
+	free(str);
+	close(pfd);
 
     return 0;
 }
