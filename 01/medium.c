@@ -5,7 +5,7 @@
 
 int main() {
 	
-	int sum = 0;
+	int sum = 1;
 
 	double startTime = omp_get_wtime();
 
