@@ -7,3 +7,5 @@
 # Unignore all dirs
 !*/
 
+# Ignore CSV-Files
+*.csv
