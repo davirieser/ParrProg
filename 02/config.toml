@@ -1,0 +1,19 @@
+
+[Task1]
+
+src = [ "Ex01/01.c" ]
+
+profiler = "../timer"
+
+links = [ "fopenmp" ]
+optimization_flags = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "fast", "s" ]
+
+	[Task1.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+
+	[Task1.Flags]
+	VARIANT = [ 0, 1 ]
+
+[Task2]
+
+src = [ "Ex02/01.c" ]
