@@ -1,7 +1,7 @@
 
 [Task1]
 
-src = [ "Ex01/01.c" ]
+src = "Ex01/01.c"
 
 profiler = "../timer"
 
@@ -16,4 +16,5 @@ optimization_flags = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "fast",
 
 [Task2]
 
-src = [ "Ex02/01.c" ]
+src = "Ex02/main.c"
+
