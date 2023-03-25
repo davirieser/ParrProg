@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define SIZE 50000 
+#define SIZE 500 
 
 volatile int32_t ** get_matrix(uint32_t size) {
 	int32_t * array = (int32_t*) malloc(sizeof(int32_t[size][size]));
@@ -31,9 +31,9 @@ int main() {
 		}
 	}
 #else 
-	for (size_t i = 0; i < n; ++i) {
-		for (size_t j = 0; j < n; ++j) {
-			c[j][i] = a[j][i] * b[j][i];
+	for (size_t j = 0; j < n; ++j) {
+		for (size_t i = 0; i < n; ++i) {
+			c[i][j] = a[i][j] * b[i][j];
 		}
 	}
 #endif
