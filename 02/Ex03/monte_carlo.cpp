@@ -9,7 +9,6 @@
 #include "../../includes/TimeMeasure.cpp"
 #include "../../includes/CSVHandler.cpp"
 
-
 #define SERIAL 0
 #define SEMAPHORE 1
 #define FIXED_ITER 2
@@ -28,7 +27,7 @@
 
 sem_t sample_counter;
 
-void* monte_carlo_hits(void* ptr)
+void *monte_carlo_hits(void *ptr)
 {
 	unsigned long samples = (unsigned long)ptr;
 	double x, y;
@@ -43,16 +42,16 @@ void* monte_carlo_hits(void* ptr)
 			hit++;
 	}
 
-	return (void*)hit;
+	return (void *)hit;
 }
 
 double monte_carlo_serial(unsigned long samples)
 {
-	unsigned long hit = (unsigned long)monte_carlo_hits((void*)samples);
+	unsigned long hit = (unsigned long)monte_carlo_hits((void *)samples);
 	return 4 * (((double)hit) / samples);
 }
 
-void* monte_carlo_hits_semaphore(void*)
+void *monte_carlo_hits_semaphore(void *)
 {
 	double x, y;
 	unsigned long hit = 0;
@@ -66,7 +65,7 @@ void* monte_carlo_hits_semaphore(void*)
 			hit++;
 	}
 
-	return (void*)hit;
+	return (void *)hit;
 }
 
 double monte_carlo_semaphore(unsigned long samples, const size_t numThreads)
@@ -145,7 +144,7 @@ double monte_carlo_fixed_iter(unsigned long samples, const size_t numThreads)
 		}
 	}
 
-	hit += (unsigned long)monte_carlo_hits((void*)remaining_calcs);
+	hit += (unsigned long)monte_carlo_hits((void *)remaining_calcs);
 
 	// Join together all Threads
 	for (size_t i = 0; i < numThreads;)
@@ -214,8 +213,6 @@ int main(int argc, char **argv)
 	double pi;
 	cpuTimeMeasure.setTimer();
 	userTimeMeasure.setTimer();
-	const char* headerNames[] = {"VARIANT", "NUM_THREADS", "Value_Pi", "CPU_Time", "User_Time"};
-	MyCSVHandler csvHandler("CSV.csv", headerNames, 5);
 
 	if (VARIANT == SERIAL)
 	{
@@ -231,8 +228,11 @@ int main(int argc, char **argv)
 	}
 	else
 		exit(1);
+
+	const char *headerNames[] = {"VARIANT", "NUM_THREADS", "Value_Pi", "CPU_Time", "User_Time"};
 	int args_i[] = {VARIANT, numThreads};
 	double args_f[] = {pi, cpuTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs()};
 	int order[] = {1, 2, -1, -2, -3};
+	MyCSVHandler csvHandler("CSV.csv", headerNames, 5);
 	csvHandler.writeValues(args_i, 2, args_f, 3, order);
 }
