@@ -41,5 +41,6 @@ runall_lcc2-%:
 
 runall_lcc2-th-%:
 	export JOBVAR_THREADS=$* ; \
-	sbatch job.sh
+	sbatch job.sh ; \
+	sleep 1
 
