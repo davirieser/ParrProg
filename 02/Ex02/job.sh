@@ -14,6 +14,6 @@
 #SBATCH --exclusive
 
 #SBATCH --output=output_cachegrind.log
-valgind --tool=cachegrind ./main
+valgrind --tool=cachegrind ./main
 #SBATCH --output=output_perf.log
-valgind --tool=perf ./main
+valgrind --tool=perf ./main
