@@ -16,4 +16,4 @@
 #SBATCH --output=output_cachegrind.log
 valgrind --tool=cachegrind ./main
 #SBATCH --output=output_perf.log
-valgrind --tool=perf ./main
+perf stat -B -e cache-references,cache-misses ./main
