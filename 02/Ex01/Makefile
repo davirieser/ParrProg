@@ -9,3 +9,6 @@ clean:
 
 mandelbrot: 01.cpp
 	g++ -o mandelbrot 01.cpp
+
+run:
+	sbatch job.sh
