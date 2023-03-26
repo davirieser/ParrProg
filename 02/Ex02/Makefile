@@ -17,12 +17,12 @@ $(File): $(File).$(File_ext)
 runall: $(patsubst %,runall-%,$(VARIANT_LIST))
 runall-%:
 	touch $(File).$(File_ext) ; \
-	$(MAKE) VARIANT=$* all run_lcc2_10 ; \
+	$(MAKE) VARIANT=$* all run_lcc2_3 ; \
 
 run_lcc2_%:
-	for i in $$(seq 1 $*); do\
-		$(MAKE) run_lcc2;\
-		sleep 4;\
+	for i in $$(seq 1 $*) ; do \
+		$(MAKE) run_lcc2 ; \
+		sleep 4 ; \
 	done
 
 run_lcc2:
