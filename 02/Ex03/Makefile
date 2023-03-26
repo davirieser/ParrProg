@@ -41,7 +41,7 @@ run_lcc2_all-%:
 
 run_lcc2_all: $(File)
 	export JOBVAR_VARIANT=0 ; \
-	runall_lcc2-th-1
+	$(MAKE) runall_lcc2-th-1
 	$(MAKE) $(patsubst %,runall_lcc2-%,$(VARIANTS))
 
 runall_lcc2-%:
