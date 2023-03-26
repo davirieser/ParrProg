@@ -13,7 +13,5 @@
 # Enforce exclusive node allocation, do not share with other jobs
 #SBATCH --exclusive
 
-#SBATCH --output=output_cachegrind.log
 valgrind --tool=cachegrind ./main
-#SBATCH --output=output_perf.log
 perf stat -B -e cache-references,cache-misses ./main
