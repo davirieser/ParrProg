@@ -30,10 +30,9 @@ public:
             for (int i = 0; i < valuesPerLine; i++)
             {
                 fprintf(this->file, "%s;", CSVHeader[i]);
-                fflush(file);
             }
             fprintf(this->file, "\n");
-            fflush(file);
+            fflush(this->file);
         }
     }
 
@@ -70,12 +69,10 @@ public:
             for (int i = 0; i < count_i; i++)
             {
                 fprintf(this->file, "%d;", values_i[i]);
-                fflush(file);
             }
             for (int i = 0; i < count_f; i++)
             {
                 fprintf(this->file, "%f;", values_f[i]);
-                fflush(file);
             }
         }
         else
@@ -87,17 +84,15 @@ public:
                 if (order[i] > 0)
                 {
                     fprintf(this->file, "%d;", values_i[order[i] - 1]);
-                    fflush(file);
                 }
                 else
                 {
                     fprintf(this->file, "%lf;", values_f[(-order[i]) - 1]);
-                    fflush(file);
                 }
             }
         }
         fprintf(this->file, "\n");
-        fflush(file);
+        fflush(this->file);
         return true;
     }
 };
