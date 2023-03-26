@@ -36,10 +36,10 @@ run_lcc2_all:
 	$(MAKE) $(patsubst %,runall_lcc2-%,$(VARIANTS))
 
 runall_lcc2-%:
-	JOBVAR_VARIANT=$*
+	export JOBVAR_VARIANT=$*
 	$(MAKE) $(patsubst %,runall_lcc2-th-%,$(THREAD_NUMBERS_PC))
 
 runall_lcc2-th-%:
-	JOBVAR_THREADS=$*
+	export JOBVAR_THREADS=$*
 	sbatch job.sh
 
