@@ -1,5 +1,5 @@
 CFLAGS = -Wall -Wextra -lm
-LINK := -fopenmp
+LINK :=
 
 File := main
 File_ext := cpp
@@ -11,18 +11,12 @@ VARIANT=0
 all: main.cpp
 
 $(File): $(File).$(File_ext)
-	g++ $^ -o $@ $(STD) $(LINK) $(COMPILE_STD) $(VARIANT)
+	g++ $^ -o $@ $(STD) $(LINK) $(COMPILE_STD) -DVARIANT=$(VARIANT)
 
 
 runVar-%:
 	touch $(File).$(File_ext) ; \
-	$(MAKE) VARIANT=$* all run_lcc2_3 ; \
-
-run_lcc2_%:
-	for i in $$(seq 1 $*) ; do \
-		$(MAKE) run_lcc2 ; \
-		sleep 4 ; \
-	done
+	$(MAKE) VARIANT=$* $(File) run_lcc2 ; \
 
 run_lcc2:
 	sbatch job.sh
