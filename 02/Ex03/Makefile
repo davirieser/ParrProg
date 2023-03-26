@@ -1,4 +1,5 @@
 CFLAGS = -Wall -Wextra -lm -pthread -Wpedantic
+COMPILES_STD = -std=c++11
 
 File = monte_carlo
 File_ext = cpp
@@ -14,7 +15,7 @@ clean:
 	$(RM) $(File)
 
 $(File): $(File).$(File_ext)
-	g++ -o $(File) $(CFLAGS) $(File).$(File_ext)
+	g++ -o $(File) $(CFLAGS) $(File).$(File_ext) $(COMPILES_STD)
 
 run_all_20times:
 	for i in $$(seq 1 100); do \
