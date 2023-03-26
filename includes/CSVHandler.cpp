@@ -8,11 +8,11 @@ private:
     int valuesPerLine;
 
 public:
-/**
- * Creates an object to handle a csv and opens "filename". File extension also needed to be defined in "filename".
- * @param CSVHeander will be written only if the file does not exist.
- * @param valuesPerLine Is the number of header in CSVHeader.
-*/
+    /**
+     * Creates an object to handle a csv and opens "filename". File extension also needed to be defined in "filename".
+     * @param CSVHeander will be written only if the file does not exist.
+     * @param valuesPerLine Is the number of header in CSVHeader.
+     */
     MyCSVHandler(const char *fileName, const char *CSVHeader[], int valuesPerLine)
     {
         this->valuesPerLine = valuesPerLine;
@@ -50,7 +50,7 @@ public:
      *      Positive indizes represent a position in values_i, negative values represent values from values_f with 1/-1 being the first value in both arrays.
      * @return true if values were written to file. \\
      * @return false if an error occured.
-    */
+     */
     bool writeValues(int values_i[], int count_i, double values_f[], int count_f, int *order = NULL)
     {
         assert(this->file != NULL);
@@ -62,7 +62,7 @@ public:
         {
             return false;
         }
-
+        fseek(file, 0, SEEK_END);
         if (order == NULL)
         {
             for (int i = 0; i < count_i; i++)
