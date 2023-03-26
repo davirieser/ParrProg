@@ -14,8 +14,7 @@ $(File): $(File).$(File_ext)
 	g++ $^ -o $@ $(STD) $(LINK) $(COMPILE_STD) $(VARIANT)
 
 
-runall: $(patsubst %,runall-%,$(VARIANT_LIST))
-runall-%:
+runVar-%:
 	touch $(File).$(File_ext) ; \
 	$(MAKE) VARIANT=$* all run_lcc2_3 ; \
 
