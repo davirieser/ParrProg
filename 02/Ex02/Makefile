@@ -26,4 +26,4 @@ run_lcc2_%:
 	done
 
 run_lcc2:
-	job.sh
+	sbatch job.sh
