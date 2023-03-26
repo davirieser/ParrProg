@@ -32,7 +32,7 @@ runall1-%:
 runall2-%:
 	./$(File) 2 $*
 
-run_lcc2_all:
+run_lcc2_all: $(File)
 	$(MAKE) $(patsubst %,runall_lcc2-%,$(VARIANTS))
 
 runall_lcc2-%:
