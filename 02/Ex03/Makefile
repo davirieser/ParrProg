@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -lm -pthread
+CFLAGS = -Wall -Wextra -lm -pthread -Wpedantic
 
 File = monte_carlo
 File_ext = cpp

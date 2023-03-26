@@ -28,8 +28,9 @@
 
 sem_t sample_counter;
 
-unsigned long monte_carlo_hits(unsigned long samples)
+void* monte_carlo_hits(void* ptr)
 {
+	unsigned long samples = (unsigned long)ptr;
 	double x, y;
 	unsigned long hit = 0;
 	unsigned int seed;
@@ -42,16 +43,16 @@ unsigned long monte_carlo_hits(unsigned long samples)
 			hit++;
 	}
 
-	return hit;
+	return (void*)hit;
 }
 
 double monte_carlo_serial(unsigned long samples)
 {
-	unsigned long hit = monte_carlo_hits(samples);
+	unsigned long hit = (unsigned long)monte_carlo_hits((void*)samples);
 	return 4 * (((double)hit) / samples);
 }
 
-unsigned long monte_carlo_hits_semaphore()
+void* monte_carlo_hits_semaphore(void*)
 {
 	double x, y;
 	unsigned long hit = 0;
@@ -65,7 +66,7 @@ unsigned long monte_carlo_hits_semaphore()
 			hit++;
 	}
 
-	return hit;
+	return (void*)hit;
 }
 
 double monte_carlo_semaphore(unsigned long samples, const size_t numThreads)
@@ -144,7 +145,7 @@ double monte_carlo_fixed_iter(unsigned long samples, const size_t numThreads)
 		}
 	}
 
-	hit += monte_carlo_hits(remaining_calcs);
+	hit += (unsigned long)monte_carlo_hits((void*)remaining_calcs);
 
 	// Join together all Threads
 	for (size_t i = 0; i < numThreads;)
@@ -185,7 +186,7 @@ int main(int argc, char **argv)
 		printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
 		return -3;
 	}
-	size_t numThreads = 1;
+	int numThreads = 1;
 	if (VARIANT > 0)
 	{
 		if (argc >= 3)
@@ -199,7 +200,7 @@ int main(int argc, char **argv)
 			if (numThreads < 1 || numThreads > 100)
 			{
 
-				printf("Number \"%lu\" was not in allowed range. Must be within 1 and 100.\n", numThreads);
+				printf("Number \"%d\" was not in allowed range. Must be within 1 and 100.\n", numThreads);
 				return -5;
 			}
 		}
