@@ -10,5 +10,10 @@ clean:
 mandelbrot: 01.cpp
 	g++ -o mandelbrot 01.cpp
 
-run:
+run_lcc2:
 	sbatch job.sh
+
+run_lcc2_%:
+	for i in $$(seq 1 $*); do\
+		$(MAKE) run_lcc2;\
+	done
