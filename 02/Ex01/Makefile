@@ -16,4 +16,5 @@ run_lcc2:
 run_lcc2_%:
 	for i in $$(seq 1 $*); do\
 		$(MAKE) run_lcc2;\
+		sleep 4;\
 	done
