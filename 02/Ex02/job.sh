@@ -13,5 +13,7 @@
 # Enforce exclusive node allocation, do not share with other jobs
 #SBATCH --exclusive
 
+#SBATCH --output=output_cachegrind.log
 valgind --tool=cachegrind ./main
+#SBATCH --output=output_perf.log
 valgind --tool=perf ./main
