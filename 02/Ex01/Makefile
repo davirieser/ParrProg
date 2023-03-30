@@ -13,8 +13,8 @@ mandelbrot: 01.cpp
 run_lcc2:
 	sbatch job.sh
 
-run_lcc2_%:
+run_lcc2_%: mandelbrot
 	for i in $$(seq 1 $*); do\
 		$(MAKE) run_lcc2;\
-		sleep 4;\
+		sleep 0.5;\
 	done
