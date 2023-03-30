@@ -61,7 +61,7 @@ run_Task1:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) $(Task1_PROFILER) ./$(EXE_FILE)
 else
-	JOB=$(EXE_FILE) sbatch ../job.sh
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task1_OPT
@@ -113,7 +113,7 @@ run_Task2:
 ifneq ($(TARGET),LCC)
 	 $(Task2_PROFILER) ./$(EXE_FILE)
 else
-	JOB=$(EXE_FILE) sbatch ../job.sh
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task2_OPT
