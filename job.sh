@@ -13,4 +13,5 @@
 # Enforce exclusive node allocation, do not share with other jobs
 #SBATCH --exclusive
 
-$(JOB)
+JOB=$1
+./${JOB}
