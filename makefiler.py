@@ -154,7 +154,7 @@ if __name__ == "__main__":
             f.write(f"ifneq ($(TARGET),LCC)\n")
             f.write(f"\t{' '.join(env_vars)} $({task_name}_PROFILER) ./$(EXE_FILE)\n")
             f.write(f"else\n")
-            f.write(f"\tJOB=$(EXE_FILE) sbatch ../job.sh\n")
+            f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
             f.write(f"endif\n\n")
 
             f.write(f".PHONY: {task_name}_OPT\n{task_name}_OPT: \n\t{opt_foreach}\n")
