@@ -1,11 +1,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <pthread.h>
-#include <semaphore.h>
-#include <math.h>
-#include <time.h>
 #include <omp.h>
 
 #include "../../includes/TimeMeasure.cpp"
@@ -15,8 +10,6 @@
 #define NUM_SAMPLES (500 * 1000 * 1000)
 #endif // NUM_SAMPLES
 
-sem_t sample_counter;
-
 unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 {
 	double x, y;
@@ -24,19 +17,19 @@ unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 	unsigned int seed;
 
 #pragma omp parallel shared(hitCounter) private(x, y, seed)
-
-	seed = (unsigned long)clock() + omp_get_thread_num();
-	for (unsigned long i = 0; i < numSamples; i++)
 	{
-		x = rand_r(&seed) / (RAND_MAX + 1.0);
-		y = rand_r(&seed) / (RAND_MAX + 1.0);
-		if (x * x + y * y < 1)
+		seed = (unsigned long)clock() + omp_get_thread_num();
+		for (unsigned long i = 0; i < numSamples; i++)
 		{
+			x = rand_r(&seed) / (RAND_MAX + 1.0);
+			y = rand_r(&seed) / (RAND_MAX + 1.0);
+			if (x * x + y * y < 1)
+			{
 #pragma omp critical
-			hitCounter++;
+				hitCounter++;
+			}
 		}
 	}
-
 	return hitCounter;
 }
 
@@ -47,20 +40,20 @@ unsigned long monte_carlo_hits_atomic(unsigned long numSamples)
 	unsigned int seed;
 
 #pragma omp parallel shared(hitCounter) private(x, y, seed)
-	seed = (unsigned long)clock() + omp_get_thread_num();
-
-	for (unsigned long i = 0; i < numSamples; i++)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
-		x = rand_r(&seed) / (RAND_MAX + 1.0);
-		y = rand_r(&seed) / (RAND_MAX + 1.0);
-		if (x * x + y * y < 1)
+		for (unsigned long i = 0; i < numSamples; i++)
 		{
+			seed = (unsigned long)clock() + omp_get_thread_num();
+			x = rand_r(&seed) / (RAND_MAX + 1.0);
+			y = rand_r(&seed) / (RAND_MAX + 1.0);
+			if (x * x + y * y < 1)
+			{
 #pragma omp atomic
-			hitCounter++;
+				hitCounter++;
+			}
 		}
 	}
-
 	return hitCounter;
 }
 
@@ -71,7 +64,7 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 	unsigned int seed;
 
 #pragma omp shared(hitCounter) for reduction(+ \
-						  : hitCounter) // private(x, y, seed)
+											 : hitCounter) // private(x, y, seed)
 	for (unsigned long i = 0; i < numSamples; i++)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
