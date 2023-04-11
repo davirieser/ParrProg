@@ -1,6 +1,44 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdlib.h>
+#include <omp.h>
+
+class OMPTimer
+{
+private:
+    double start;
+
+public:
+    OMPTimer()
+    {
+        setTimer();
+    }
+
+    void setTimer()
+    {
+        start = omp_get_wtime();
+    }
+
+    /**
+     * @return The time in in seconds as a double since last setTimer().
+     */
+    double getTime_fs()
+    {
+        return (omp_get_wtime() - start);
+    }
+
+    /**
+     * Executes getTime_us() and resets the timer.
+     * @return The time in in seconds as a double since last setTimer().
+     */
+    double getTime_fs_AndSet()
+    {
+        double time = getTime_fs();
+        setTimer();
+        return time;
+    }
+} ompTimeMeasure;
+
 
 class UserTimeMeasure
 {
