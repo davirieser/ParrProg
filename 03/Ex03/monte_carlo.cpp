@@ -21,8 +21,8 @@
 // #define NUM_THREADS (1)
 // #endif // NUM_THREADS
 
-#ifndef OMP_NUM_THREADS
-#define OMP_NUM_THREADS -1
+#ifndef VARIANT
+#define VARIANT -1
 #endif
 
 #ifndef NUM_SAMPLES
@@ -107,30 +107,38 @@ unsigned long monte_carlo_array_padded(unsigned long samples)
 
 int main(int argc, char **argv)
 {
-	if (argc < 2)
+	if (VARIANT < 0 || VARIANT > 2)
 	{
-		printf("Wrong number of arguments. Expected \"%s n (m)\"\n", argv[0]);
-		printf("With n being a number between 0 and 2 to decide the variant and m the number of treds (for case 1 and 2).\n");
+		printf("Variant was not set.");
 		printf("0 -> ATOMIC_SUM\n");
 		printf("1 -> ARRAY_SUBSEQUENT\n");
 		printf("2 -> ARRAY_PADDING\n");
 		return -1;
 	}
-	char *endptr;
-	const int VARIANT = strtol(argv[1], &endptr, 10);
-	if (*endptr != '\0')
-	{
-		printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
-		return -2;
-	}
-	if (VARIANT < 0 || VARIANT > 2)
-	{
-		printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
-		return -3;
-	}
+	// if (argc < 2)
+	// {
+	// 	printf("Wrong number of arguments. Expected \"%s n (m)\"\n", argv[0]);
+	// 	printf("With n being a number between 0 and 2 to decide the variant and m the number of treds (for case 1 and 2).\n");
+	// 	printf("0 -> ATOMIC_SUM\n");
+	// 	printf("1 -> ARRAY_SUBSEQUENT\n");
+	// 	printf("2 -> ARRAY_PADDING\n");
+	// 	return -1;
+	// }
+	// char *endptr;
+	// const int VARIANT = strtol(argv[1], &endptr, 10);
+	// if (*endptr != '\0')
+	// {
+	// 	printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
+	// 	return -2;
+	// }
+	// if (VARIANT < 0 || VARIANT > 2)
+	// {
+	// 	printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
+	// 	return -3;
+	// }
 	unsigned long hits;
 	double pi;
-	
+
 	userTimeMeasure.setTimer();
 
 	if (VARIANT == ATOMIC_SUM)
@@ -153,6 +161,6 @@ int main(int argc, char **argv)
 	const char *headerNames[] = {"VARIANT", "NUM_THREADS", "Value_Pi", "User_Time"};
 	int args_i[] = {VARIANT, omp_get_max_threads()};
 	double args_f[] = {pi, userTimeMeasure.getTime_fs()};
-	MyCSVHandler csvHandler("CSV.csv", headerNames, 6);
+	MyCSVHandler csvHandler("Ex03_CSV.csv", headerNames, 4);
 	csvHandler.writeValues(args_i, 2, args_f, 2);
 }

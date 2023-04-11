@@ -6,6 +6,10 @@
 #include "../../includes/TimeMeasure.cpp"
 #include "../../includes/CSVHandler.cpp"
 
+#ifndef VARIANT
+#define VARIANT -1
+#endif
+
 #ifndef NUM_SAMPLES
 #define NUM_SAMPLES (500 * 1000 * 1000)
 #endif // NUM_SAMPLES
@@ -19,6 +23,7 @@ unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 #pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
+#pragma omp for
 		for (unsigned long i = 0; i < numSamples; i++)
 		{
 			x = rand_r(&seed) / (RAND_MAX + 1.0);
@@ -42,6 +47,7 @@ unsigned long monte_carlo_hits_atomic(unsigned long numSamples)
 #pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
+#pragma omp for
 		for (unsigned long i = 0; i < numSamples; i++)
 		{
 			seed = (unsigned long)clock() + omp_get_thread_num();
@@ -61,7 +67,6 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 {
 	double x, y;
 	unsigned long hitCounter = 0;
-	unsigned int seed;
 
 #pragma omp default(none) private(seed, x, y) shared(hitCounter) for reduction(+ \
 																			   : hitCounter)
@@ -75,41 +80,16 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 	return hitCounter;
 }
 
-struct args
-{
-	const int VARIANT;
-};
-
-struct args checkArgs(int argc, char **argv)
-{
-	if (argc < 2)
-	{
-		printf("Wrong number of arguments. Expected \"%s [n] \"\n", argv[0]);
-		printf("With n being a number between 0 and 2 to decide the variant.\n");
-		printf("0 -> Critical\n");
-		printf("1 -> Atomic\n");
-		printf("2 -> Reduction\n");
-		exit(-1);
-	}
-	char *endptr;
-	const int VARIANT = strtol(argv[1], &endptr, 10);
-	if (*endptr != '\0')
-	{
-		printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
-		exit(-2);
-	}
-	if (VARIANT < 0 || VARIANT > 2)
-	{
-		printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
-		exit(-3);
-	}
-	return (struct args){.VARIANT = VARIANT};
-}
-
 int main(int argc, char **argv)
 {
-	struct args args = checkArgs(argc, argv);
-	int VARIANT = args.VARIANT;
+	if (VARIANT < 0 || VARIANT > 2)
+	{
+		printf("Variant was not set.\n");
+		printf("0 -> ATOMIC_SUM\n");
+		printf("1 -> ARRAY_SUBSEQUENT\n");
+		printf("2 -> ARRAY_PADDING\n");
+		return -1;
+	}
 
 	ompTimeMeasure.setTimer();
 	userTimeMeasure.setTimer();
@@ -120,9 +100,9 @@ int main(int argc, char **argv)
 	unsigned long hits = functions[VARIANT](NUM_SAMPLES);
 	double pi = 4 * ((double)hits) / NUM_SAMPLES;
 
-	int args_i[] = {VARIANT};
+	int args_i[] = { omp_get_max_threads(), VARIANT};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
-	const char *headerNames[] = {"VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU"};
-	MyCSVHandler csvHandler("CSV.csv", headerNames, 5);
-	csvHandler.writeValues(args_i, 1, args_f, 4);
+	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
+	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
+	csvHandler.writeValues(args_i, 2, args_f, 4);
 }
