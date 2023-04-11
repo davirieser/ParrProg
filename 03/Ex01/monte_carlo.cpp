@@ -16,7 +16,7 @@ unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 	unsigned long hitCounter = 0;
 	unsigned int seed;
 
-#pragma omp parallel shared(hitCounter) private(x, y, seed)
+#pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
 		for (unsigned long i = 0; i < numSamples; i++)
@@ -39,7 +39,7 @@ unsigned long monte_carlo_hits_atomic(unsigned long numSamples)
 	unsigned long hitCounter = 0;
 	unsigned int seed;
 
-#pragma omp parallel shared(hitCounter) private(x, y, seed)
+#pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
 		for (unsigned long i = 0; i < numSamples; i++)
@@ -63,13 +63,12 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 	unsigned long hitCounter = 0;
 	unsigned int seed;
 
-#pragma omp shared(hitCounter) for reduction(+ \
-											 : hitCounter) // private(x, y, seed)
-	for (unsigned long i = 0; i < numSamples; i++)
+#pragma omp default(none) private(seed, x, y) shared(hitCounter) for reduction(+ \
+																			   : hitCounter)
+	for (unsigned long i = 0, seed = omp_get_thread_num(); i < numSamples; i++)
 	{
-		seed = (unsigned long)clock() + omp_get_thread_num();
-		x = rand_r(&seed) / (RAND_MAX + 1.0);
-		y = rand_r(&seed) / (RAND_MAX + 1.0);
+		x = rand_r((unsigned int *)&seed) / (RAND_MAX + 1.0);
+		y = rand_r((unsigned int *)&seed) / (RAND_MAX + 1.0);
 		if (x * x + y * y < 1)
 			hitCounter++;
 	}
@@ -85,11 +84,11 @@ struct args checkArgs(int argc, char **argv)
 {
 	if (argc < 2)
 	{
-		printf("Wrong number of arguments. Expected \"%s n \"\n", argv[0]);
+		printf("Wrong number of arguments. Expected \"%s [n] \"\n", argv[0]);
 		printf("With n being a number between 0 and 2 to decide the variant.\n");
 		printf("0 -> Critical\n");
-		printf("1 -> atomic\n");
-		printf("2 -> reduction\n");
+		printf("1 -> Atomic\n");
+		printf("2 -> Reduction\n");
 		exit(-1);
 	}
 	char *endptr;

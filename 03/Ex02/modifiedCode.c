@@ -27,6 +27,20 @@ void free_2d_array(int *arr, long len)
 	free(arr);
 }
 
+void printMatrix(int *matrix, int size, char varName)
+{
+	printf("%c = [", varName);
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			printf("%d.0 ", matrix[i * size + j]);
+		}
+		printf(";\n");
+	}
+	printf("]\n\n");
+}
+
 int main(int argc, char **argv)
 {
 	// handle input
@@ -61,6 +75,7 @@ int main(int argc, char **argv)
 	INIT_ARRAY(a, error_a);
 	int *b;
 	INIT_ARRAY(b, error_b);
+	// C is not initialized
 	int *c;
 	INIT_ARRAY(c, error_c);
 	unsigned *local_res = malloc(omp_get_max_threads() * sizeof(*local_res));
@@ -72,26 +87,36 @@ int main(int argc, char **argv)
 	unsigned int seed = 7;
 	// srand(7);
 
-// #pragma omp parallel for default(none) shared(a, b, n, seed)
+	// #pragma omp parallel for default(none) shared(a, b, n, seed)
 	for (long i = 0; i < n; ++i)
 	{
 		for (long j = 0; j < n; ++j)
 		{
-			a[i * n + j] = rand_r(&seed);
-			b[i * n + j] = rand_r(&seed);
+			a[i * n + j] = rand_r(&seed) % 255;
+			b[i * n + j] = rand_r(&seed) % 255;
+			c[i * n + j] = 0;
 			// a[i * n + j] = rand();
 			// b[i * n + j] = rand();
 		}
 	}
 
+	// printMatrix(a, n, 'a');
+	// printf("\n");
+	// printMatrix(b, n, 'b');
+
 	double start_time = omp_get_wtime();
-#pragma omp parallel default(none) shared(n, a, b, c, local_res)
+	unsigned long res = 0;
+
+#pragma omp parallel default(none) shared(n, a, b, c, local_res, res)
 	{
 		// matrix multiplication
 		// Speedup by about 1.5% at n = 600 in this section by swapping the order of the loops.
-#pragma omp parallel for default(none) shared(n, a, b, c)
+		// parellel for is garbage
+// #pragma omp parallel for default(none) shared(n, a, b, c)
+#pragma omp for schedule(guided)
 		for (long j = 0; j < n; ++j)
 		{
+			// printf("Thread %d with %ld\n", omp_get_thread_num(), j);
 			for (long i = 0; i < n; ++i)
 			{
 				for (long k = 0; k < n; ++k)
@@ -100,21 +125,17 @@ int main(int argc, char **argv)
 				}
 			}
 		}
-
-		// sum of matrix c
-#pragma omp parallel for default(none) shared(n, a, b, c, local_res)
+		// For reduction instead of a parallel partial sum that gets accumulated.
+		// Saved about 5-10%
+#pragma omp for reduction(+ \
+						  : res)
 		for (long i = 0; i < n; ++i)
 		{
 			for (long j = 0; j < n; ++j)
 			{
-				local_res[omp_get_thread_num()] += c[i * n + j];
+				res += c[i * n + j];
 			}
 		}
-	}
-	unsigned long res = 0;
-	for (int l = 0; l < omp_get_num_threads(); ++l)
-	{
-		res += local_res[l];
 	}
 	double end_time = omp_get_wtime();
 	printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
