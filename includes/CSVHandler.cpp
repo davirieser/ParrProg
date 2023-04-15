@@ -96,7 +96,8 @@ public:
         return true;
     }
 
-    bool writeErrorLine(char* errorText){
+    void writeErrorLine(char* errorText){
+        assert(this->file != NULL);
         fseek(this->file, 0, SEEK_END);
         fprintf(this->file, "%s\n", errorText);
         fflush(this->file);
