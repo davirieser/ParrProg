@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	char* endPtr;
-	const int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
+	int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
 	if(*endPtr != '\0'){
 		printf("%s could not be converted.\n", ENV_CHAR);
 	}
