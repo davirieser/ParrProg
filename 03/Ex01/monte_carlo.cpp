@@ -6,13 +6,11 @@
 #include "../../includes/TimeMeasure.cpp"
 #include "../../includes/CSVHandler.cpp"
 
-#ifndef VARIANT
-#define VARIANT -1
-#endif
-
 #ifndef NUM_SAMPLES
 #define NUM_SAMPLES (500 * 1000 * 1000)
 #endif // NUM_SAMPLES
+
+#define ENVIROMENT_VAR "VARIANT"
 
 unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 {
@@ -82,17 +80,22 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 
 int main(int argc, char **argv)
 {
-	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
+	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if(ENV_CHAR == NULL){
+		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
+		return -1;
+	}
+	char* endPtr;
+	const int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
+	if(*endPtr != '\0'){
+		printf("%s could not be converted.\n", ENV_CHAR);
+	}
 	if (VARIANT < 0 || VARIANT > 2)
 	{
 		printf("Variant was not set.\n");
 		printf("0 -> ATOMIC_SUM\n");
 		printf("1 -> ARRAY_SUBSEQUENT\n");
 		printf("2 -> ARRAY_PADDING\n");
-		char buffer[64];
-		MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
-		snprintf(buffer, 64, "Variant was not allowed. Value was %d.", VARIANT);
-		csvHandler.writeErrorLine(buffer);
 		return -1;
 	}
 
@@ -105,6 +108,7 @@ int main(int argc, char **argv)
 	unsigned long hits = functions[VARIANT](NUM_SAMPLES);
 	double pi = 4 * ((double)hits) / NUM_SAMPLES;
 
+	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
 	int args_i[] = {omp_get_max_threads(), VARIANT};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
 	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
