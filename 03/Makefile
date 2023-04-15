@@ -4,7 +4,7 @@
 STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
-TARGET=LOCAL
+TARGET=LCC
 # ------ Configuration Values for Task1 (Ex01/monte_carlo.cpp) ---------------------------------- #
 
 Task1_FILE := Ex01/monte_carlo.cpp
@@ -91,6 +91,7 @@ Task1:
 				Task1_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
 				Task1_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task1; \
+				sleep 4; \
 			) \
 		) \
 	)
@@ -101,7 +102,7 @@ run_Task1:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) $(Task1_PROFILER) ./$(EXE_FILE)
 else
-	sbatch ../job.sh $(EXE_FILE)
+#	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task1_OPT
@@ -159,7 +160,7 @@ run_Task2:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task2_OMP_NUM_THREADS) $(Task2_PROFILER) ./$(EXE_FILE)
 else
-	sbatch ../job.sh $(EXE_FILE)
+#	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task2_OPT
@@ -217,7 +218,7 @@ run_Task4:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task4_OMP_NUM_THREADS) $(Task4_PROFILER) ./$(EXE_FILE)
 else
-	sbatch ../job.sh $(EXE_FILE)
+#	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task4_OPT
@@ -275,7 +276,7 @@ run_Task3:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task3_OMP_NUM_THREADS) $(Task3_PROFILER) ./$(EXE_FILE)
 else
-	sbatch ../job.sh $(EXE_FILE)
+#	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task3_OPT
