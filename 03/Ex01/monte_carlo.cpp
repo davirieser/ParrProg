@@ -7,7 +7,7 @@
 #include "../../includes/CSVHandler.cpp"
 
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES (500 * 1000 * 1000)
+#define NUM_SAMPLES (5 * 1000 * 1000)
 #endif // NUM_SAMPLES
 
 #define ENVIROMENT_VAR "EXECUTION_VARIANT"
@@ -80,6 +80,7 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 
 int main(int argc, char **argv)
 {
+	int numThreads = omp_get_max_threads();
 	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
 	if(ENV_CHAR == NULL){
 		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
@@ -109,7 +110,7 @@ int main(int argc, char **argv)
 	double pi = 4 * ((double)hits) / NUM_SAMPLES;
 
 	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
-	int args_i[] = {omp_get_max_threads(), variant};
+	int args_i[] = {numThreads, variant};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
 	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
 	csvHandler.writeValues(args_i, 2, args_f, 4);

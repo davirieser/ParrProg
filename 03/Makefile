@@ -85,12 +85,14 @@ Task1:
 	@ $(foreach opt,$(Task1_OPTIMIZATION_LEVELS), \
 		$(foreach OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
 			$(foreach VARIANT, $(Task1_VARIANT_VALUES), \
+				export EXECUTION_VARIANT=$(VARIANT) && \
 				Task1_OPTIMIZATION_LEVEL=$(opt) \
 				COMPILE_FILE=Ex01/monte_carlo.cpp \
 				EXE_FILE=Ex01/monte_carlo \
 				Task1_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
 				Task1_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task1; \
+				sleep 1; \
 			) \
 		) \
 	)
@@ -99,11 +101,9 @@ Task1:
 run_Task1:
 	$(MAKE) -e --no-print-directory compile_Task1
 ifneq ($(TARGET),LCC)
-	export EXECUTION_VARIANT=$(VARIANT)
 	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
 	$(Task1_PROFILER) ./$(EXE_FILE)
 else
-	export EXECUTION_VARIANT=$(VARIANT)
 	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
 	sbatch ../job.sh $(EXE_FILE)
 endif
