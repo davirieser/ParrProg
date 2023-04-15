@@ -91,7 +91,6 @@ Task1:
 				Task1_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
 				Task1_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task1; \
-				sleep 4; \
 			) \
 		) \
 	)
@@ -100,9 +99,13 @@ Task1:
 run_Task1:
 	$(MAKE) -e --no-print-directory compile_Task1
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) $(Task1_PROFILER) ./$(EXE_FILE)
+	export EXECUTION_VARIANT=$(VARIANT)
+	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
+	$(Task1_PROFILER) ./$(EXE_FILE)
 else
-#	sbatch ../job.sh $(EXE_FILE)
+	export EXECUTION_VARIANT=$(VARIANT)
+	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task1_OPT
