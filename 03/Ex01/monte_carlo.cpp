@@ -86,11 +86,11 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	char* endPtr;
-	int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
+	const int variant = strtol(ENV_CHAR, &endPtr, 10);
 	if(*endPtr != '\0'){
 		printf("%s could not be converted.\n", ENV_CHAR);
 	}
-	if (VARIANT < 0 || VARIANT > 2)
+	if (variant < 0 || variant > 2)
 	{
 		printf("Variant was not set.\n");
 		printf("0 -> ATOMIC_SUM\n");
@@ -105,11 +105,11 @@ int main(int argc, char **argv)
 
 	unsigned long (*functions[])(unsigned long) = {monte_carlo_hits_critical, monte_carlo_hits_atomic, monte_carlo_hits_reduction};
 
-	unsigned long hits = functions[VARIANT](NUM_SAMPLES);
+	unsigned long hits = functions[variant](NUM_SAMPLES);
 	double pi = 4 * ((double)hits) / NUM_SAMPLES;
 
 	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
-	int args_i[] = {omp_get_max_threads(), VARIANT};
+	int args_i[] = {omp_get_max_threads(), variant};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
 	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
 	csvHandler.writeValues(args_i, 2, args_f, 4);
