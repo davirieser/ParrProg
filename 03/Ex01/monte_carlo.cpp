@@ -82,12 +82,17 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 
 int main(int argc, char **argv)
 {
+	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
+	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
 	if (VARIANT < 0 || VARIANT > 2)
 	{
 		printf("Variant was not set.\n");
 		printf("0 -> ATOMIC_SUM\n");
 		printf("1 -> ARRAY_SUBSEQUENT\n");
 		printf("2 -> ARRAY_PADDING\n");
+		char buffer[64];
+		snprintf(buffer, 64, "Variant was not allowed. Value was %d.", VARIANT);
+		csvHandler.writeErrorLine(buffer);
 		return -1;
 	}
 
@@ -102,7 +107,5 @@ int main(int argc, char **argv)
 
 	int args_i[] = { omp_get_max_threads(), VARIANT};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
-	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
-	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
 	csvHandler.writeValues(args_i, 2, args_f, 4);
 }

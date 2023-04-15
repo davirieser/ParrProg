@@ -95,4 +95,10 @@ public:
         fflush(this->file);
         return true;
     }
+
+    bool writeErrorLine(char* errorText){
+        fseek(this->file, 0, SEEK_END);
+        fprintf(this->file, "%s\n", errorText);
+        fflush(this->file);
+    }
 };
