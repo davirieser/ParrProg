@@ -131,7 +131,7 @@ if __name__ == "__main__":
             for env_name, _ in envs:
                 indent_str = '\t' * (indent - 1)
                 loops += f"$(foreach {env_name}, $({task_name}_{env_name}_VALUES), \\\n\t{indent_str}" 
-                env_repl.append(f"export {task_name}_{env_name}=$({env_name}) && ")
+                env_repl.append(f"export {env_name}=$({env_name}) && ")
                 closing = f" \\\n{indent_str})" + closing;
                 indent += 1
             for flag, _ in flags:
