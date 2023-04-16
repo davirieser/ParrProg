@@ -8,4 +8,4 @@
 !*/
 
 # Ignore CSV-Files
-*.csv
+# *.csv
