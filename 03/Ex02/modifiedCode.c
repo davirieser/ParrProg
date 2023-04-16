@@ -4,10 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-#ifndef NUM_SAMPLES
-#define NUM_SAMPLES -1
-#endif
+#define ENVIROMENT_VAR "NUM_SAMPLES"
 
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
@@ -48,7 +45,19 @@ void printMatrix(int *matrix, int size, char varName)
 
 int main(int argc, char **argv)
 {
-		if (NUM_SAMPLES < 0)
+	char *ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if (ENV_CHAR == NULL)
+	{
+		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
+		return -1;
+	}
+	char *endPtr;
+	const int NUM_SAMPLES = strtol(ENV_CHAR, &endPtr, 10);
+	if (*endPtr != '\0')
+	{
+		printf("%s could not be converted.\n", ENV_CHAR);
+	}
+	if (NUM_SAMPLES < 0)
 	{
 		printf("Number of samples was not set.\n");
 		return -1;
@@ -124,7 +133,23 @@ int main(int argc, char **argv)
 		}
 	}
 	double end_time = omp_get_wtime();
-	printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
+
+	const char* fileName = "Ex02_CSV_modified.csv";
+	FILE* file = fopen(fileName, "r");
+	int writeHeader = file == NULL;
+	if (file != NULL)
+	{
+		fclose(file);
+	}
+	file = fopen(fileName, "a");
+	if(writeHeader){
+		fprintf(file, "Result; executionTime\n");
+	}
+	// printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
+	fprintf(file, "%lu; %2.4f;\n", res, end_time - start_time);
+	fclose(file);
+
+
 
 	// cleanup
 	free(local_res);

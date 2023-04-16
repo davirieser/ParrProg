@@ -6,8 +6,8 @@
 #include <semaphore.h>
 #include <math.h>
 
-#include "../../includes/TimeMeasure.cpp"
-#include "../../includes/CSVHandler.cpp"
+#include "../../includes/TimeMeasure.h"
+#include "../../includes/CSVHandler.h"
 
 #define ATOMIC_SUM 0
 #define ARRAY_SUBSEQUENT 1
@@ -21,7 +21,7 @@
 // #define NUM_THREADS (1)
 // #endif // NUM_THREADS
 
-#define ENVIROMENT_VAR "EXECUTION_VARIANT"
+#define ENVIROMENT_VAR "VARIANT"
 
 #ifndef NUM_SAMPLES
 #define NUM_SAMPLES (100 * 1000 * 1000)

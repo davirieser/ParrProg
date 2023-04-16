@@ -4,33 +4,41 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #ifndef NUM_SAMPLES
 #define NUM_SAMPLES -1
 #endif
 
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
-	do { \
-		PERROR; \
-		goto label; \
+	do                     \
+	{                      \
+		PERROR;            \
+		goto label;        \
 	} while (0)
 
-#define INIT_ARRAY(arr, label) \
-	do { \
-		if (!(arr)) PERROR_GOTO(label); \
-		for (long i = 0; i < n; ++i) { \
+#define INIT_ARRAY(arr, label)                      \
+	do                                              \
+	{                                               \
+		if (!(arr))                                 \
+			PERROR_GOTO(label);                     \
+		for (long i = 0; i < n; ++i)                \
+		{                                           \
 			(arr)[i] = malloc(sizeof(**(arr)) * n); \
-			if (!(arr)[i]) PERROR_GOTO(label); \
-		} \
+			if (!(arr)[i])                          \
+				PERROR_GOTO(label);                 \
+		}                                           \
 	} while (0)
 
-void free_2d_array(int **arr, long len) {
-	if (!arr) {
+void free_2d_array(int **arr, long len)
+{
+	if (!arr)
+	{
 		return;
 	}
-	for (long i = 0; i < len; ++i) {
-		if (!arr[i]) {
+	for (long i = 0; i < len; ++i)
+	{
+		if (!arr[i])
+		{
 			break;
 		}
 		free(arr[i]);
@@ -38,7 +46,8 @@ void free_2d_array(int **arr, long len) {
 	free(arr);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	// // handle input
 	// if (argc != 2) {
 	// 	fprintf(stderr, "Error: usage: %s <n>\n", argv[0]);
@@ -60,7 +69,7 @@ int main(int argc, char **argv) {
 	// 	fprintf(stderr, "Error: matrix size must not be negative!\n");
 	// 	return EXIT_FAILURE;
 	// }
-		if (NUM_SAMPLES < 0)
+	if (NUM_SAMPLES < 0)
 	{
 		printf("Number of samples was not set.\n");
 		return -1;
@@ -75,14 +84,17 @@ int main(int argc, char **argv) {
 	INIT_ARRAY(b, error_b);
 	int **c = malloc(sizeof(*c) * n);
 	INIT_ARRAY(c, error_c);
-    unsigned *local_res = malloc(omp_get_max_threads() * sizeof(*local_res));
-    if (!local_res) PERROR_GOTO(error_c);
-    status = EXIT_SUCCESS;
+	unsigned *local_res = malloc(omp_get_max_threads() * sizeof(*local_res));
+	if (!local_res)
+		PERROR_GOTO(error_c);
+	status = EXIT_SUCCESS;
 
 	// fill matrix
 	srand(7);
-	for (long i = 0; i < n; ++i) {
-		for (long j = 0; j < n; ++j) {
+	for (long i = 0; i < n; ++i)
+	{
+		for (long j = 0; j < n; ++j)
+		{
 			a[i][j] = rand();
 			b[i][j] = rand();
 		}
@@ -93,9 +105,12 @@ int main(int argc, char **argv) {
 	{
 		// matrix multiplication
 #pragma omp parallel for default(none) shared(n, a, b, c)
-		for (long i = 0; i < n; ++i) {
-			for (long j = 0; j < n; ++j) {
-				for (long k = 0; k < n; ++k) {
+		for (long i = 0; i < n; ++i)
+		{
+			for (long j = 0; j < n; ++j)
+			{
+				for (long k = 0; k < n; ++k)
+				{
 					c[i][j] += a[i][k] * b[k][j];
 				}
 			}
@@ -103,18 +118,35 @@ int main(int argc, char **argv) {
 
 		// sum of matrix c
 #pragma omp parallel for default(none) shared(n, a, b, c, local_res)
-		for (long i = 0; i < n; ++i) {
-			for (long j = 0; j < n; ++j) {
+		for (long i = 0; i < n; ++i)
+		{
+			for (long j = 0; j < n; ++j)
+			{
 				local_res[omp_get_thread_num()] += c[i][j];
 			}
 		}
 	}
 	unsigned long res = 0;
-	for (int l = 0; l < omp_get_num_threads(); ++l) {
+	for (int l = 0; l < omp_get_num_threads(); ++l)
+	{
 		res += local_res[l];
 	}
 	double end_time = omp_get_wtime();
-	printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
+
+	const char* fileName = "Ex02_CSV_original.csv";
+	FILE* file = fopen(fileName, "r");
+	int writeHeader = file == NULL;
+	if (file != NULL)
+	{
+		fclose(file);
+	}
+	file = fopen(fileName, "a");
+	if(writeHeader){
+		fprintf(file, "Result; executionTime\n");
+	}
+	// printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
+	fprintf(file, "%lu;%2.4f;\n", res, end_time - start_time);
+	fclose(file);
 
 	// cleanup
 	free(local_res);

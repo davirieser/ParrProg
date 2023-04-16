@@ -8,9 +8,9 @@ optimization_levels = [ "fast" ]
 
 	[Task1.Env]
 	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+	VARIANT = [ 0, 1, 2]
 
 	[Task1.Flags]
-	VARIANT = [ 0, 1, 2]
 
 
 [Task2]
@@ -22,9 +22,10 @@ optimization_levels = [ "fast" ]
 
 	[Task2.Env]
 	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+	NUM_SAMPLES = [ 1500]
 	
 	[Task2.Flags]
-	NUM_SAMPLES = [ 1500]
+
 	
 
 [Task4]
@@ -36,9 +37,9 @@ optimization_levels = [ "fast" ]
 
 	[Task4.Env]
 	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+	NUM_SAMPLES = [ 1500]
 	
 	[Task4.Flags]
-	NUM_SAMPLES = [ 1500]
 	
 
 
@@ -51,9 +52,9 @@ optimization_levels = [ "fast" ]
 
 	[Task3.Env]
 	OMP_NUM_THREADS = [ 8 ]
+	VARIANT = [ 0, 1, 2]
 
 	[Task3.Flags]
-	VARIANT = [ 0, 1, 2]
 
 
 

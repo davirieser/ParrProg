@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <omp.h>
 
-#include "../../includes/TimeMeasure.cpp"
-#include "../../includes/CSVHandler.cpp"
+#include "../../includes/TimeMeasure.h"
+#include "../../includes/CSVHandler.h"
 
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES (500 * 1000 * 1000)
+#define NUM_SAMPLES (5 * 1000 * 1000)
 #endif // NUM_SAMPLES
 
-#define ENVIROMENT_VAR "EXECUTION_VARIANT"
+#define ENVIROMENT_VAR "VARIANT"
 
 unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 {
