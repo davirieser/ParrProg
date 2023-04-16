@@ -149,7 +149,7 @@ Task2:
 run_Task2:
 	$(MAKE) -e --no-print-directory compile_Task2
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task2_OMP_NUM_THREADS) NUM_SAMPLES=$(Task2_NUM_SAMPLES) $(Task2_PROFILER) ./$(EXE_FILE)
+	$(Task2_PROFILER) ./$(EXE_FILE)
 else
 	sbatch ../job.sh $(EXE_FILE)
 endif
@@ -207,7 +207,7 @@ Task4:
 run_Task4:
 	$(MAKE) -e --no-print-directory compile_Task4
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task4_OMP_NUM_THREADS) NUM_SAMPLES=$(Task4_NUM_SAMPLES) $(Task4_PROFILER) ./$(EXE_FILE)
+	$(Task4_PROFILER) ./$(EXE_FILE)
 else
 	sbatch ../job.sh $(EXE_FILE)
 endif
@@ -265,7 +265,7 @@ Task3:
 run_Task3:
 	$(MAKE) -e --no-print-directory compile_Task3
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task3_OMP_NUM_THREADS) VARIANT=$(Task3_VARIANT) $(Task3_PROFILER) ./$(EXE_FILE)
+	$(Task3_PROFILER) ./$(EXE_FILE)
 else
 	sbatch ../job.sh $(EXE_FILE)
 endif
