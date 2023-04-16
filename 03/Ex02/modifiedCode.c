@@ -143,10 +143,10 @@ int main(int argc, char **argv)
 	}
 	file = fopen(fileName, "a");
 	if(writeHeader){
-		fprintf(file, "Result;executionTime;NumThreads\n");
+		fprintf(file, "NumThreads;Result;executionTime\n");
 	}
 	// printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
-	fprintf(file, "%lu;%6.4f;%d;\n", res, end_time - start_time, omp_get_max_threads());
+	fprintf(file, "%d;%lu;%6.4f;\n", omp_get_max_threads(), res, end_time - start_time);
 	fclose(file);
 
 
