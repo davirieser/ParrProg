@@ -1,0 +1,59 @@
+
+[Task1]
+
+src = "Ex01/monte_carlo.cpp"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task1.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+
+	[Task1.Flags]
+	VARIANT = [ 0, 1, 2]
+
+
+[Task2]
+
+src = "Ex02/modifiedCode.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+	
+	[Task2.Flags]
+	NUM_SAMPLES = [ 1500]
+	
+
+[Task4]
+
+src = "Ex02/originalCode.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task4.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
+	
+	[Task4.Flags]
+	NUM_SAMPLES = [ 1500]
+	
+
+
+[Task3]
+
+src = "Ex03/monte_carlo.cpp"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task3.Env]
+	OMP_NUM_THREADS = [ 8 ]
+
+	[Task3.Flags]
+	VARIANT = [ 0, 1, 2]
+
+
+

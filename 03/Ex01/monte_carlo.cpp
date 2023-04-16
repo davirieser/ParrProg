@@ -10,15 +10,18 @@
 #define NUM_SAMPLES (500 * 1000 * 1000)
 #endif // NUM_SAMPLES
 
+#define ENVIROMENT_VAR "EXECUTION_VARIANT"
+
 unsigned long monte_carlo_hits_critical(unsigned long numSamples)
 {
 	double x, y;
 	unsigned long hitCounter = 0;
 	unsigned int seed;
 
-#pragma omp parallel shared(hitCounter) private(x, y, seed)
+#pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
+#pragma omp for
 		for (unsigned long i = 0; i < numSamples; i++)
 		{
 			x = rand_r(&seed) / (RAND_MAX + 1.0);
@@ -39,9 +42,10 @@ unsigned long monte_carlo_hits_atomic(unsigned long numSamples)
 	unsigned long hitCounter = 0;
 	unsigned int seed;
 
-#pragma omp parallel shared(hitCounter) private(x, y, seed)
+#pragma omp parallel default(none) shared(hitCounter, numSamples) private(x, y, seed)
 	{
 		seed = (unsigned long)clock() + omp_get_thread_num();
+#pragma omp for
 		for (unsigned long i = 0; i < numSamples; i++)
 		{
 			seed = (unsigned long)clock() + omp_get_thread_num();
@@ -61,56 +65,40 @@ unsigned long monte_carlo_hits_reduction(unsigned long numSamples)
 {
 	double x, y;
 	unsigned long hitCounter = 0;
-	unsigned int seed;
 
-#pragma omp shared(hitCounter) for reduction(+ \
-											 : hitCounter) // private(x, y, seed)
-	for (unsigned long i = 0; i < numSamples; i++)
+#pragma omp default(none) private(seed, x, y) shared(hitCounter) for reduction(+ \
+																			   : hitCounter)
+	for (unsigned long i = 0, seed = omp_get_thread_num(); i < numSamples; i++)
 	{
-		seed = (unsigned long)clock() + omp_get_thread_num();
-		x = rand_r(&seed) / (RAND_MAX + 1.0);
-		y = rand_r(&seed) / (RAND_MAX + 1.0);
+		x = rand_r((unsigned int *)&seed) / (RAND_MAX + 1.0);
+		y = rand_r((unsigned int *)&seed) / (RAND_MAX + 1.0);
 		if (x * x + y * y < 1)
 			hitCounter++;
 	}
 	return hitCounter;
 }
 
-struct args
-{
-	const int VARIANT;
-};
-
-struct args checkArgs(int argc, char **argv)
-{
-	if (argc < 2)
-	{
-		printf("Wrong number of arguments. Expected \"%s n \"\n", argv[0]);
-		printf("With n being a number between 0 and 2 to decide the variant.\n");
-		printf("0 -> Critical\n");
-		printf("1 -> atomic\n");
-		printf("2 -> reduction\n");
-		exit(-1);
-	}
-	char *endptr;
-	const int VARIANT = strtol(argv[1], &endptr, 10);
-	if (*endptr != '\0')
-	{
-		printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
-		exit(-2);
-	}
-	if (VARIANT < 0 || VARIANT > 2)
-	{
-		printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
-		exit(-3);
-	}
-	return (struct args){.VARIANT = VARIANT};
-}
-
 int main(int argc, char **argv)
 {
-	struct args args = checkArgs(argc, argv);
-	int VARIANT = args.VARIANT;
+	int numThreads = omp_get_max_threads();
+	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if(ENV_CHAR == NULL){
+		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
+		return -1;
+	}
+	char* endPtr;
+	const int variant = strtol(ENV_CHAR, &endPtr, 10);
+	if(*endPtr != '\0'){
+		printf("%s could not be converted.\n", ENV_CHAR);
+	}
+	if (variant < 0 || variant > 2)
+	{
+		printf("Variant was not set.\n");
+		printf("0 -> ATOMIC_SUM\n");
+		printf("1 -> ARRAY_SUBSEQUENT\n");
+		printf("2 -> ARRAY_PADDING\n");
+		return -1;
+	}
 
 	ompTimeMeasure.setTimer();
 	userTimeMeasure.setTimer();
@@ -118,12 +106,12 @@ int main(int argc, char **argv)
 
 	unsigned long (*functions[])(unsigned long) = {monte_carlo_hits_critical, monte_carlo_hits_atomic, monte_carlo_hits_reduction};
 
-	unsigned long hits = functions[VARIANT](NUM_SAMPLES);
+	unsigned long hits = functions[variant](NUM_SAMPLES);
 	double pi = 4 * ((double)hits) / NUM_SAMPLES;
 
-	int args_i[] = {VARIANT};
+	const char *headerNames[] = {"NUM_THREDS", "VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU Time"};
+	int args_i[] = {numThreads, variant};
 	double args_f[] = {pi, ompTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs(), cpuTimeMeasure.getTime_fs()};
-	const char *headerNames[] = {"VARIANT", "Value_Pi", "OMP Time", "User Time", "CPU"};
-	MyCSVHandler csvHandler("CSV.csv", headerNames, 5);
-	csvHandler.writeValues(args_i, 1, args_f, 4);
+	MyCSVHandler csvHandler("Ex01_CSV.csv", headerNames, 6);
+	csvHandler.writeValues(args_i, 2, args_f, 4);
 }

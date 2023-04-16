@@ -21,141 +21,155 @@
 // #define NUM_THREADS (1)
 // #endif // NUM_THREADS
 
+#define ENVIROMENT_VAR "EXECUTION_VARIANT"
+
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES (700 * 1000 * 1000)
+#define NUM_SAMPLES (100 * 1000 * 1000)
 #endif // NUM_SAMPLES
 
 sem_t sample_counter;
 
-void *monte_carlo_hits(void *ptr)
+unsigned long inline checkHit(unsigned int *seed)
 {
-	unsigned long samples = (unsigned long)ptr;
-	double x, y;
-	unsigned long hitCounter = 0;
-	unsigned int seed = clock();
-
-	for (unsigned long i = 0; i < samples; i++)
-	{
-		x = rand_r(&seed) / (RAND_MAX + 1.0);
-		y = rand_r(&seed) / (RAND_MAX + 1.0);
-		if (x * x + y * y < 1)
-			hitCounter++;
-	}
-
-	return (void *)hitCounter;
+	double x = (double)rand_r(seed) / (RAND_MAX + 1.0);
+	double y = (double)rand_r(seed) / (RAND_MAX + 1.0);
+	return x * x + y * y < 1;
 }
 
-double monte_carlo_fixed_iter(unsigned long samples, const size_t numThreads)
+unsigned long monte_carlo_atomic(unsigned long samples)
 {
-	// Integer Division always rounds down.
-	// This leaves up to (numThreads - 1) for someone to do.
-	// This implementation leaves the main-Thread to do them.
-	unsigned long samples_per_thread = samples / numThreads;
-	unsigned long remaining_calcs = samples % numThreads;
-	unsigned long hit = 0;
+	unsigned long totalHits = 0;
 
-
-	pthread_t threadIds[numThreads];
-
-	for (size_t i = 0; i < numThreads; i++)
+#pragma omp parallel shared(totalHits)
 	{
-		// Create Threads
-		if (pthread_create(&threadIds[i], NULL, monte_carlo_hits, (void*)samples_per_thread))
+		unsigned long localSum = 0;
+		unsigned int seed = omp_get_thread_num();
+#pragma omp for
+		for (unsigned long i = 0; i < samples; i++)
 		{
-			perror("pthread_create");
+			localSum += checkHit(&seed);
+		}
+#pragma omp atomic
+		totalHits += localSum;
+	}
+	return totalHits;
+}
+
+unsigned long monte_carlo_array(unsigned long samples)
+{
+	unsigned long totalHits = 0;
+	unsigned long localArray[omp_get_max_threads()] = {0};
+
+#pragma omp parallel shared(totalHits, localArray)
+	{
+		unsigned int seed = omp_get_thread_num();
+#pragma omp for
+		for (unsigned long i = 0; i < samples; i++)
+		{
+			localArray[omp_get_thread_num()] += checkHit(&seed);
 		}
 	}
-
-	hit += (unsigned long)monte_carlo_hits((void *)remaining_calcs);
-
-	// Join together all Threads
-	for (size_t i = 0; i < numThreads;)
+	for (int i = 0; i < omp_get_max_threads(); i++)
 	{
-		unsigned long ret;
-		if (!pthread_join(threadIds[i], (void **)&ret))
-		{
-			hit += ret;
-			i++;
-		};
+		totalHits += localArray[i];
 	}
+	return totalHits;
+}
 
+#define CACHE_LINE_SIZE (64 * 8)
 
-	pthread_attr_destroy(&t_attr);
+unsigned long monte_carlo_array_padded(unsigned long samples)
+{
+	unsigned long localArray[CACHE_LINE_SIZE / sizeof(unsigned long) * omp_get_max_threads()] = {0};
+	unsigned long cache_line_distance = CACHE_LINE_SIZE / sizeof(*localArray);
+	unsigned long totalHits = 0;
 
-	return 4 * (((double)hit) / samples);
+	// unsigned int size = sizeof(unsigned long) unsigned long totalHits = 0;
+	// unsigned long localArray[omp_get_max_threads()] = {0};
+
+#pragma omp parallel shared(totalHits, localArray)
+	{
+		unsigned int seed = omp_get_thread_num();
+#pragma omp for
+		for (unsigned long i = 0; i < samples; i++)
+		{
+			localArray[omp_get_thread_num() * cache_line_distance] += checkHit(&seed);
+		}
+	}
+	for (int i = 0; i < omp_get_max_threads(); i++)
+	{
+		totalHits += localArray[i * cache_line_distance];
+	}
+	return totalHits;
 }
 
 int main(int argc, char **argv)
 {
-	if (argc < 2)
-	{
-		printf("Wrong number of arguments. Expected \"%s n (m)\"\n", argv[0]);
-		printf("With n being a number between 0 and 2 to decide the variant and m the number of treds (for case 1 and 2).\n");
-		printf("0 -> SERIAL\n");
-		printf("1 -> SEMAPHORE\n");
-		printf("2 -> FIXED_ITER\n");
+int numThreads = omp_get_max_threads();
+	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if(ENV_CHAR == NULL){
+		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
 		return -1;
 	}
-	char *endptr;
-	const int VARIANT = strtol(argv[1], &endptr, 10);
-	if (*endptr != '\0')
-	{
-		printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
-		return -2;
+	char* endPtr;
+	const int variant = strtol(ENV_CHAR, &endPtr, 10);
+	if(*endPtr != '\0'){
+		printf("%s could not be converted.\n", ENV_CHAR);
 	}
-	if (VARIANT < 0 || VARIANT > 2)
+	if (variant < 0 || variant > 2)
 	{
-		printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
-		return -3;
+		printf("Variant was not set.");
+		printf("0 -> ATOMIC_SUM\n");
+		printf("1 -> ARRAY_SUBSEQUENT\n");
+		printf("2 -> ARRAY_PADDING\n");
+		return -1;
 	}
-	int numThreads = 1;
-	if (VARIANT > 0)
-	{
-		if (argc >= 3)
-		{
-			numThreads = strtol(argv[2], &endptr, 10);
-			if (*endptr != '\0')
-			{
-				printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[2], endptr);
-				return -4;
-			}
-			if (numThreads < 1 || numThreads > 100)
-			{
-
-				printf("Number \"%d\" was not in allowed range. Must be within 1 and 100.\n", numThreads);
-				return -5;
-			}
-		}
-	}
-	// FILE *file = fopen("Data.csv", "a");
-	// fprintf(file, "VARIANT: %d\n", VARIANT);
-	if (VARIANT > 0)
-	{
-		// fprintf(file, "Number of Threads: %lu\n", numThreads);
-	}
+	// if (argc < 2)
+	// {
+	// 	printf("Wrong number of arguments. Expected \"%s n (m)\"\n", argv[0]);
+	// 	printf("With n being a number between 0 and 2 to decide the variant and m the number of treds (for case 1 and 2).\n");
+	// 	printf("0 -> ATOMIC_SUM\n");
+	// 	printf("1 -> ARRAY_SUBSEQUENT\n");
+	// 	printf("2 -> ARRAY_PADDING\n");
+	// 	return -1;
+	// }
+	// char *endptr;
+	// const int VARIANT = strtol(argv[1], &endptr, 10);
+	// if (*endptr != '\0')
+	// {
+	// 	printf("Number \"%s\" was not parseable. \"%s\" remained.\n", argv[1], endptr);
+	// 	return -2;
+	// }
+	// if (VARIANT < 0 || VARIANT > 2)
+	// {
+	// 	printf("Number must be between 0 and 2. Number was \"%d\".\n", VARIANT);
+	// 	return -3;
+	// }
+	unsigned long hits;
 	double pi;
-	cpuTimeMeasure.setTimer();
+
 	userTimeMeasure.setTimer();
 
-	if (VARIANT == SERIAL)
+	if (VARIANT == ATOMIC_SUM)
 	{
-		pi = monte_carlo_serial(NUM_SAMPLES);
+		hits = monte_carlo_atomic(NUM_SAMPLES);
 	}
-	else if (VARIANT == SEMAPHORE)
+	else if (VARIANT == ARRAY_SUBSEQUENT)
 	{
-		pi = monte_carlo_semaphore(NUM_SAMPLES, numThreads);
+		hits = monte_carlo_array(NUM_SAMPLES);
 	}
-	else if (VARIANT == FIXED_ITER)
+	else if (VARIANT == ARRAY_PADDING)
 	{
-		pi = monte_carlo_fixed_iter(NUM_SAMPLES, numThreads);
+		hits = monte_carlo_array_padded(NUM_SAMPLES);
 	}
 	else
 		exit(1);
 
-	const char *headerNames[] = {"VARIANT", "NUM_THREADS", "Value_Pi", "CPU_Time", "User_Time"};
-	int args_i[] = {VARIANT, numThreads};
-	double args_f[] = {pi, cpuTimeMeasure.getTime_fs(), userTimeMeasure.getTime_fs()};
-	int order[] = {1, 2, -1, -2, -3};
-	MyCSVHandler csvHandler("CSV.csv", headerNames, 5);
-	csvHandler.writeValues(args_i, 2, args_f, 3, order);
+	pi = 4 * ((double)hits / NUM_SAMPLES);
+
+	const char *headerNames[] = {"VARIANT", "NUM_THREADS", "Value_Pi", "User_Time"};
+	int args_i[] = {VARIANT, omp_get_max_threads()};
+	double args_f[] = {pi, userTimeMeasure.getTime_fs()};
+	MyCSVHandler csvHandler("Ex03_CSV.csv", headerNames, 4);
+	csvHandler.writeValues(args_i, 2, args_f, 2);
 }

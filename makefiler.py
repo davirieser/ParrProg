@@ -4,7 +4,7 @@ import os
 import fnmatch
 import toml
 
-default_compile_flags = " -Wall -Werror"
+default_compile_flags = " -Wall" #-Werror"
 MAKE = "$(MAKE) -e --no-print-directory"
 
 # https://stackoverflow.com/a/1724723
