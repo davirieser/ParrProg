@@ -21,9 +21,7 @@
 // #define NUM_THREADS (1)
 // #endif // NUM_THREADS
 
-#ifndef VARIANT
-#define VARIANT -1
-#endif
+#define ENVIROMENT_VAR "EXECUTION_VARIANT"
 
 #ifndef NUM_SAMPLES
 #define NUM_SAMPLES (100 * 1000 * 1000)
@@ -107,7 +105,18 @@ unsigned long monte_carlo_array_padded(unsigned long samples)
 
 int main(int argc, char **argv)
 {
-	if (VARIANT < 0 || VARIANT > 2)
+int numThreads = omp_get_max_threads();
+	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if(ENV_CHAR == NULL){
+		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
+		return -1;
+	}
+	char* endPtr;
+	const int variant = strtol(ENV_CHAR, &endPtr, 10);
+	if(*endPtr != '\0'){
+		printf("%s could not be converted.\n", ENV_CHAR);
+	}
+	if (variant < 0 || variant > 2)
 	{
 		printf("Variant was not set.");
 		printf("0 -> ATOMIC_SUM\n");

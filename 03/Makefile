@@ -83,13 +83,13 @@ all: Task1 Task2 Task4 Task3
 .PHONY: Task1
 Task1:
 	@ $(foreach opt,$(Task1_OPTIMIZATION_LEVELS), \
-		$(foreach OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
+		$(foreach var_OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
 			$(foreach VARIANT, $(Task1_VARIANT_VALUES), \
 				export EXECUTION_VARIANT=$(VARIANT) && \
+				export OMP_NUM_THREADS=$(var_OMP_NUM_THREADS) && \
 				Task1_OPTIMIZATION_LEVEL=$(opt) \
 				COMPILE_FILE=Ex01/monte_carlo.cpp \
 				EXE_FILE=Ex01/monte_carlo \
-				Task1_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
 				Task1_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task1; \
 				sleep 1; \
@@ -101,10 +101,8 @@ Task1:
 run_Task1:
 	$(MAKE) -e --no-print-directory compile_Task1
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
 	$(Task1_PROFILER) ./$(EXE_FILE)
 else
-	export OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) && \
 	sbatch ../job.sh $(EXE_FILE)
 endif
 
@@ -145,8 +143,9 @@ compile_Task1:
 .PHONY: Task2
 Task2:
 	@ $(foreach opt,$(Task2_OPTIMIZATION_LEVELS), \
-		$(foreach OMP_NUM_THREADS, $(Task2_OMP_NUM_THREADS_VALUES), \
+		$(foreach var_OMP_NUM_THREADS, $(Task2_OMP_NUM_THREADS_VALUES), \
 			$(foreach NUM_SAMPLES, $(Task2_NUM_SAMPLES_VALUES), \
+				export OMP_NUM_THREADS=$(var_OMP_NUM_THREADS) && \
 				Task2_OPTIMIZATION_LEVEL=$(opt) \
 				COMPILE_FILE=Ex02/modifiedCode.c \
 				EXE_FILE=Ex02/modifiedCode \
@@ -161,9 +160,9 @@ Task2:
 run_Task2:
 	$(MAKE) -e --no-print-directory compile_Task2
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task2_OMP_NUM_THREADS) $(Task2_PROFILER) ./$(EXE_FILE)
+	$(Task2_PROFILER) ./$(EXE_FILE)
 else
-#	sbatch ../job.sh $(EXE_FILE)
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task2_OPT
@@ -203,8 +202,9 @@ compile_Task2:
 .PHONY: Task4
 Task4:
 	@ $(foreach opt,$(Task4_OPTIMIZATION_LEVELS), \
-		$(foreach OMP_NUM_THREADS, $(Task4_OMP_NUM_THREADS_VALUES), \
-			$(foreach NUM_SAMPLES, $(Task4_NUM_SAMPLES_VALUES), \
+		$(foreach var_OMP_NUM_THREADS, $(Task2_OMP_NUM_THREADS_VALUES), \
+			$(foreach NUM_SAMPLES, $(Task2_NUM_SAMPLES_VALUES), \
+				export OMP_NUM_THREADS=$(var_OMP_NUM_THREADS) && \
 				Task4_OPTIMIZATION_LEVEL=$(opt) \
 				COMPILE_FILE=Ex02/originalCode.c \
 				EXE_FILE=Ex02/originalCode \
@@ -219,9 +219,9 @@ Task4:
 run_Task4:
 	$(MAKE) -e --no-print-directory compile_Task4
 ifneq ($(TARGET),LCC)
-	OMP_NUM_THREADS=$(Task4_OMP_NUM_THREADS) $(Task4_PROFILER) ./$(EXE_FILE)
+	$(Task4_PROFILER) ./$(EXE_FILE)
 else
-#	sbatch ../job.sh $(EXE_FILE)
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task4_OPT
@@ -261,12 +261,13 @@ compile_Task4:
 .PHONY: Task3
 Task3:
 	@ $(foreach opt,$(Task3_OPTIMIZATION_LEVELS), \
-		$(foreach OMP_NUM_THREADS, $(Task3_OMP_NUM_THREADS_VALUES), \
+		$(foreach var_OMP_NUM_THREADS, $(Task3_OMP_NUM_THREADS_VALUES), \
 			$(foreach VARIANT, $(Task3_VARIANT_VALUES), \
+				export EXECUTION_VARIANT=$(VARIANT) && \
+				export OMP_NUM_THREADS=$(var_OMP_NUM_THREADS) && \
 				Task3_OPTIMIZATION_LEVEL=$(opt) \
 				COMPILE_FILE=Ex03/monte_carlo.cpp \
 				EXE_FILE=Ex03/monte_carlo \
-				Task3_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
 				Task3_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task3; \
 			) \
@@ -279,7 +280,7 @@ run_Task3:
 ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task3_OMP_NUM_THREADS) $(Task3_PROFILER) ./$(EXE_FILE)
 else
-#	sbatch ../job.sh $(EXE_FILE)
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: Task3_OPT
