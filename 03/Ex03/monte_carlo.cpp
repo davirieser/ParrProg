@@ -112,11 +112,11 @@ int numThreads = omp_get_max_threads();
 		return -1;
 	}
 	char* endPtr;
-	const int variant = strtol(ENV_CHAR, &endPtr, 10);
+	const int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
 	if(*endPtr != '\0'){
 		printf("%s could not be converted.\n", ENV_CHAR);
 	}
-	if (variant < 0 || variant > 2)
+	if (VARIANT < 0 || VARIANT > 2)
 	{
 		printf("Variant was not set.");
 		printf("0 -> ATOMIC_SUM\n");
