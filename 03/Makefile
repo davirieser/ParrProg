@@ -93,7 +93,7 @@ Task1:
 				Task1_VARIANT=$(VARIANT) \
 				$(MAKE) -e --no-print-directory run_Task1; \
 				sleep 1; \
-			) \
+				) \
 		) \
 	)
 
@@ -104,7 +104,7 @@ ifneq ($(TARGET),LCC)
 	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
 	$(Task1_PROFILER) ./$(EXE_FILE)
 else
-	OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS)
+	export OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) && \
 	sbatch ../job.sh $(EXE_FILE)
 endif
 
