@@ -4,7 +4,7 @@
 src = "test.c"
 
 optimization_levels = [ "fast" ]
-profiler = "./timer" 
+profiler = "timer" 
 
 	[Task1.Env]
 	OMP_NUM_THREADS = [ 1, 2, 4, 8 ]
