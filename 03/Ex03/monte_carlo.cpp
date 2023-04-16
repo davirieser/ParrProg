@@ -58,7 +58,12 @@ unsigned long monte_carlo_atomic(unsigned long samples)
 unsigned long monte_carlo_array(unsigned long samples)
 {
 	unsigned long totalHits = 0;
-	unsigned long localArray[omp_get_max_threads()] = {0};
+	unsigned long size = omp_get_max_threads();
+	unsigned long localArray[size];
+	for (unsigned long i = 0; i < size; i++)
+	{
+		localArray[i] = 0;
+	}
 
 #pragma omp parallel shared(totalHits, localArray)
 	{
@@ -80,7 +85,12 @@ unsigned long monte_carlo_array(unsigned long samples)
 
 unsigned long monte_carlo_array_padded(unsigned long samples)
 {
-	unsigned long localArray[CACHE_LINE_SIZE / sizeof(unsigned long) * omp_get_max_threads()] = {0};
+	unsigned long size = CACHE_LINE_SIZE / sizeof(unsigned long) * omp_get_max_threads();
+	unsigned long localArray[size];
+	for (unsigned long i = 0; i < size; i++)
+	{
+		localArray[i] = 0;
+	}
 	unsigned long cache_line_distance = CACHE_LINE_SIZE / sizeof(*localArray);
 	unsigned long totalHits = 0;
 
@@ -105,15 +115,17 @@ unsigned long monte_carlo_array_padded(unsigned long samples)
 
 int main(int argc, char **argv)
 {
-int numThreads = omp_get_max_threads();
-	char* ENV_CHAR = getenv(ENVIROMENT_VAR);
-	if(ENV_CHAR == NULL){
+	int numThreads = omp_get_max_threads();
+	char *ENV_CHAR = getenv(ENVIROMENT_VAR);
+	if (ENV_CHAR == NULL)
+	{
 		printf("Enviroment variable %s was not found.\n", ENVIROMENT_VAR);
 		return -1;
 	}
-	char* endPtr;
+	char *endPtr;
 	const int VARIANT = strtol(ENV_CHAR, &endPtr, 10);
-	if(*endPtr != '\0'){
+	if (*endPtr != '\0')
+	{
 		printf("%s could not be converted.\n", ENV_CHAR);
 	}
 	if (VARIANT < 0 || VARIANT > 2)
