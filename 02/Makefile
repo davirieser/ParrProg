@@ -1,7 +1,7 @@
 
 .NOTPARALLEL:
 
-STD_CFLAGS= -Wall -Werror
+STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
 TARGET=LOCAL
@@ -43,13 +43,13 @@ all: Task1 Task2
 .PHONY: Task1
 Task1:
 	@ $(foreach opt,$(Task1_OPTIMIZATION_LEVELS), \
-		$(foreach OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
+		$(foreach Task1_OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
 			$(foreach VARIANT, $(Task1_VARIANT_VALUES), \
-				Task1_OPTIMIZATION_LEVEL=$(opt) \
+				export OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) &&  \
+				Task1_VARIANT=$(VARIANT) \
 				COMPILE_FILE=Ex01/01.cpp \
 				EXE_FILE=Ex01/01 \
-				Task1_OMP_NUM_THREADS=$(OMP_NUM_THREADS) \
-				Task1_VARIANT=$(VARIANT) \
+				OPTIMIZATION_LEVEL=$(opt) \
 				$(MAKE) -e --no-print-directory run_Task1; \
 			) \
 		) \
@@ -101,9 +101,9 @@ compile_Task1:
 .PHONY: Task2
 Task2:
 	@ $(foreach opt,$(Task2_OPTIMIZATION_LEVELS), \
-		Task2_OPTIMIZATION_LEVEL=$(opt) \
 		COMPILE_FILE=Ex02/main.cpp \
 		EXE_FILE=Ex02/main \
+		OPTIMIZATION_LEVEL=$(opt) \
 		$(MAKE) -e --no-print-directory run_Task2; \
 	)
 

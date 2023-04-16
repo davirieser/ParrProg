@@ -124,7 +124,7 @@ if __name__ == "__main__":
             opt_foreach = f"@ $(foreach opt,$({task_name}_OPTIMIZATION_LEVELS), \\\n\t\tCOMPILE_FILE={src_file} \\\n\t\tEXE_FILE={remove_file_ending(src_file)} \\\n\t\t{task_name}_OPTIMIZATION_LEVEL=$(opt) \\\n\t\t{MAKE} run_{task_name}; \\\n\t)"
 
             loops = f"@ $(foreach opt,$({task_name}_OPTIMIZATION_LEVELS), \\\n\t\t"
-            env_repl = [f"export OPTIMIZATION_LEVEL=$(opt) && "]
+            env_repl = []
             closing = " \\\n\t)"
 
             indent = 3
@@ -143,6 +143,7 @@ if __name__ == "__main__":
 
             env_repl.append(f"COMPILE_FILE={src_file}");
             env_repl.append(f"EXE_FILE={remove_file_ending(src_file)}");
+            env_repl.append(f"OPTIMIZATION_LEVEL=$(opt)");
 
             f.write(f".PHONY: {task_name}\n")
             f.write(f"{task_name}:\n")
