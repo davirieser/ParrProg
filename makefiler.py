@@ -156,7 +156,7 @@ if __name__ == "__main__":
             f.write(f".PHONY: run_{task_name}\nrun_{task_name}:\n")
             f.write(f"\t{MAKE} compile_{task_name}\n")
             f.write(f"ifneq ($(TARGET),LCC)\n")
-            f.write(f"\t{' '.join(env_vars)} $({task_name}_PROFILER) ./$(EXE_FILE)\n")
+            f.write(f"\t$({task_name}_PROFILER) ./$(EXE_FILE)\n")
             f.write(f"else\n")
             f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
             f.write(f"endif\n\n")
