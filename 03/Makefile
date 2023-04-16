@@ -4,7 +4,7 @@
 STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
-TARGET=LOCAL
+TARGET=LCC
 # ------ Configuration Values for Task1 (Ex01/monte_carlo.cpp) ---------------------------------- #
 
 Task1_FILE := Ex01/monte_carlo.cpp
@@ -83,6 +83,7 @@ Task1:
 				EXE_FILE=Ex01/monte_carlo \
 				OPTIMIZATION_LEVEL=$(opt) \
 				$(MAKE) -e --no-print-directory run_Task1; \
+				usleep 10000; \
 			) \
 		) \
 	)
@@ -141,6 +142,7 @@ Task2:
 				EXE_FILE=Ex02/modifiedCode \
 				OPTIMIZATION_LEVEL=$(opt) \
 				$(MAKE) -e --no-print-directory run_Task2; \
+				usleep 10000; \
 			) \
 		) \
 	)
@@ -199,6 +201,7 @@ Task4:
 				EXE_FILE=Ex02/originalCode \
 				OPTIMIZATION_LEVEL=$(opt) \
 				$(MAKE) -e --no-print-directory run_Task4; \
+				usleep 10000; \
 			) \
 		) \
 	)
@@ -257,6 +260,7 @@ Task3:
 				EXE_FILE=Ex03/monte_carlo \
 				OPTIMIZATION_LEVEL=$(opt) \
 				$(MAKE) -e --no-print-directory run_Task3; \
+				usleep 10000; \
 			) \
 		) \
 	)
