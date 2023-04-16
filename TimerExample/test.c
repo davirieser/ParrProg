@@ -1,8 +1,12 @@
 
+#include "stdio.h"
+
 int setup() {
-	return 0;
+	long i = 100;
+	return i;
 }
 
-int run() {
+int run(void * args) {
+	perror("Args: %ld\n");
 	return 0;
 }
