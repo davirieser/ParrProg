@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <omp.h>
 
-void writeToFile(int version, double res, double time){
+void writeToFile(int version, long unsigned res, double time){
     	const char* fileName = "Ex02_CSV.csv";
 	FILE* file = fopen(fileName, "r");
 	int writeHeader = file == NULL;

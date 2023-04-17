@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wrtieToFile.h"
 
 #define ENVIROMENT_VAR "NUM_SAMPLES"
 
