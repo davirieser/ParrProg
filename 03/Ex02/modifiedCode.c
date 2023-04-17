@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wrtieToFile.h"
 
 #define ENVIROMENT_VAR "NUM_SAMPLES"
 
@@ -133,21 +134,7 @@ int main(int argc, char **argv)
 		}
 	}
 	double end_time = omp_get_wtime();
-
-	const char* fileName = "Ex02_CSV_modified.csv";
-	FILE* file = fopen(fileName, "r");
-	int writeHeader = file == NULL;
-	if (file != NULL)
-	{
-		fclose(file);
-	}
-	file = fopen(fileName, "a");
-	if(writeHeader){
-		fprintf(file, "NumThreads;Result;executionTime\n");
-	}
-	// printf("res: %lu, time: %2.4f seconds\n", res, end_time - start_time);
-	fprintf(file, "%d;%lu;%6.4f;\n", omp_get_max_threads(), res, end_time - start_time);
-	fclose(file);
+	wrtieToFile(1, res, end_time - start_time);
 
 
 
