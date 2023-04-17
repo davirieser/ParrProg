@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "wrtieToFile.h"
+#include "writeToFile.h"
 
 #define ENVIROMENT_VAR "NUM_SAMPLES"
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		}
 	}
 	double end_time = omp_get_wtime();
-	wrtieToFile(1, res, end_time - start_time);
+	writeToFile(1, res, end_time - start_time);
 
 
 
