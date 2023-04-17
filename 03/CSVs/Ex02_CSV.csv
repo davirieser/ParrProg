@@ -1,4 +1,4 @@
-Version;NumThreads;Result;executionTime
+Version;NumThreads;Result;executionTime;
 1;8;54432997389644;2.2257;
 1;4;54432997389644;3.7069;
 1;2;54432997389644;6.9505;
