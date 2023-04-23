@@ -25,8 +25,8 @@ int main() {
     int numTries = 0;
 
     FILE* file = fopen("data.csv", "a");
-    while(fprintf(file, "%s, %s, %f, %d\n", getenv("OMP_PLACES"), getenv("OMP_PROC_BIND"), time, counter) < 1 && numTries < 3){
-        usleep(1000);
+    while(fprintf(file, "%s, %s, %f, %d\n", getenv("OMP_PLACES"), getenv("OMP_PROC_BIND"), time, counter) < 1 && numTries < 10){
+        usleep(10000);
         numTries++;
     }
     fclose(file);
