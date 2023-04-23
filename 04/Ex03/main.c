@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ARRAY_SIZE 5 
+#define ARRAY_SIZE 100000000 
 
 typedef struct mem {
 	int * a;
@@ -144,7 +144,7 @@ void * setup() {
 	srand(7);
 
 	for (int i = 0; i < ARRAY_SIZE; i ++) {
-		arr1[i] = rand() % 255;
+		arr1[i] = rand();
 	}
 
 	return mem;
@@ -153,6 +153,7 @@ void * setup() {
 int run(void * args) {
 	mem_t * mem = args;
 
+	// merge_sort(mem->b, 0, ARRAY_SIZE);
 	p_merge_sort(mem->b, mem->a, ARRAY_SIZE);
 			
 	return 0;
@@ -161,19 +162,23 @@ int run(void * args) {
 int main() {
 	mem_t * mem = (mem_t *) setup();
 
+	/* 
 	printf("[");
 	for (int i = 0; i < ARRAY_SIZE; i ++) {
 		printf("%d, ", mem->a[i]);
 	}
 	printf("]\n");
+	*/
 
 	int ret = run(mem);
 
+	/* 
 	printf("[");
 	for (int i = 0; i < ARRAY_SIZE; i ++) {
 		printf("%d, ", mem->b[i]);
 	}
 	printf("]\n");
+	*/
 
 	return ret;
 }
