@@ -1,0 +1,6 @@
+
+- flush.c creates 2 Threads
+	- Thread 1 is the Write Thread
+	- Thread 2 is the Read Thread
+	- Write Thread writes to the data-Buffer and sets the Written-Flag
+	- The Read Thread waits for the Written-Flag to be set and then prints the data to Stdout
