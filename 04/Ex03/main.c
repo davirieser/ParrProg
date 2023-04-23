@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ARRAY_SIZE 10
+#define ARRAY_SIZE 5 
 
 typedef struct mem {
 	int * a;
@@ -98,6 +98,24 @@ int binary_search (int *a, int n, int x) {
 // Source: Lecture Slides
 
 void p_merge(int * c, int * a, int * b, int na, int nb) {
+	while (na > 0 && nb > 0) {
+		if (*a <= *b) {
+			*(c++) = *(a++);
+			na--;
+		} else {
+			*(c++) = *(b++);
+			nb--;
+		}
+	}
+	while (na > 0) {
+		*(c++) = *(a++);
+		na --;
+	}
+	while (nb > 0) {
+		*(c++) = *(b++);
+		nb--;
+	}
+	/*
 	if (na < nb) {
 		p_merge(c, b, a, nb, na);
 	} else if (na == 0) {
@@ -114,6 +132,7 @@ void p_merge(int * c, int * a, int * b, int na, int nb) {
 		p_merge(c+ma+mb+1, a+ma+1, b+mb, na-ma-1, nb-mb);
 #pragma omp taskwait
 	}
+	*/
 }
 
 void p_merge_sort(int * b, int * a, int n) {
@@ -171,7 +190,7 @@ int main() {
 
 	printf("[");
 	for (int i = 0; i < ARRAY_SIZE; i ++) {
-		printf("%d, ", mem->a[i]);
+		printf("%d, ", mem->b[i]);
 	}
 	printf("]\n");
 
