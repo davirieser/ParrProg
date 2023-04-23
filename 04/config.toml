@@ -1,0 +1,13 @@
+
+[Task3]
+
+src = "Ex03/main.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+profiler = "timer"
+
+	[Task3.Env]
+	OMP_NUM_THREADS = [ 8 ]
+	VARIANT = [ 0, 1, 2]
+
