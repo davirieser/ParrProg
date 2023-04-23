@@ -1,12 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 #include <time.h>
+#include "../../includes/CSVHandler.h"
 
-#define NUM_ITERATIONS 1'000'000'000
+#define NUM_ITERATIONS 2'000'000'000
 
 int main() {
     long long i;
-    long long counter = 0;
+    int counter = 0;
     double start_time, end_time;
 
     start_time = omp_get_wtime();
@@ -19,8 +21,9 @@ int main() {
 
     end_time = omp_get_wtime();
 
-    printf("Time taken = %f seconds\n", end_time - start_time);
-    printf("Counter value = %lld\n", counter);
+    FILE* file = fopen("data.csv", "a");
+    fprintf(file, "%s, %s, %f, %d\n", getenv("OMP_PLACES"), getenv("OMP_PROC_BIND"), end_time - start_time, counter);
+    fclose(file);
 
     return 0;
 }
