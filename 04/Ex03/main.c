@@ -92,30 +92,12 @@ int binary_search (int *a, int n, int x) {
             j = k - 1;
         }
     }
-    return k;
+    return i;
 }
 
 // Source: Lecture Slides
 
 void p_merge(int * c, int * a, int * b, int na, int nb) {
-	while (na > 0 && nb > 0) {
-		if (*a <= *b) {
-			*(c++) = *(a++);
-			na--;
-		} else {
-			*(c++) = *(b++);
-			nb--;
-		}
-	}
-	while (na > 0) {
-		*(c++) = *(a++);
-		na --;
-	}
-	while (nb > 0) {
-		*(c++) = *(b++);
-		nb--;
-	}
-	/*
 	if (na < nb) {
 		p_merge(c, b, a, nb, na);
 	} else if (na == 0) {
@@ -129,10 +111,9 @@ void p_merge(int * c, int * a, int * b, int na, int nb) {
 #pragma omp task
 		p_merge(c, a, b, ma, mb);
 #pragma omp task
-		p_merge(c+ma+mb+1, a+ma+1, b+mb, na-ma-1, nb-mb);
+		p_merge(c+ma+mb+1, a+ma+1, b+mb, na-(ma+1), nb-mb);
 #pragma omp taskwait
 	}
-	*/
 }
 
 void p_merge_sort(int * b, int * a, int n) {
