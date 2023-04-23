@@ -94,9 +94,9 @@ int main(int argc, char **argv)
 	if (variant < 0 || variant > 2)
 	{
 		printf("Variant was not set.\n");
-		printf("0 -> ATOMIC_SUM\n");
-		printf("1 -> ARRAY_SUBSEQUENT\n");
-		printf("2 -> ARRAY_PADDING\n");
+		printf("0 -> Critical\n");
+		printf("1 -> Atomic\n");
+		printf("2 -> Reduction\n");
 		return -1;
 	}
 

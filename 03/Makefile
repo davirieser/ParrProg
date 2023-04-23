@@ -4,7 +4,7 @@
 STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
-TARGET=LCC
+TARGET=LOCAL
 # ------ Configuration Values for Task1 (Ex01/monte_carlo.cpp) ---------------------------------- #
 
 Task1_FILE := Ex01/monte_carlo.cpp
