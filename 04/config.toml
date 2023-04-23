@@ -1,4 +1,18 @@
 
+[Task1]
+
+src = "Ex01/threadAffinity.cpp"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "3" ]
+
+	[Task1.Env]
+	OMP_NUM_THREADS = [ 4 ]
+	OMP_PLACES = [ "threads", "cores", "sockets", "numa" ]
+	OMP_PROC_BIND = [ "false", "true", "spread", "close", "master", "explicit" ]
+
+	[Task1.Flags]
+
 [Task3]
 
 src = "Ex03/main.c"
@@ -10,4 +24,3 @@ profiler = "timer"
 	[Task3.Env]
 	OMP_NUM_THREADS = [ 8 ]
 	VARIANT = [ 0, 1, 2]
-
