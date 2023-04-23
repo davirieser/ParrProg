@@ -86,7 +86,8 @@ if __name__ == "__main__":
             f.write(f"{task_name}_LINKS := {' '.join(links)}\n")
             f.write(f"{task_name}_OPTIMIZATION_LEVEL ?= {f'-O{opt[0]}'}\n")
             f.write(f"{task_name}_OPTIMIZATION_LEVELS := {'-O' + ' -O'.join(opt)}\n")
-            f.write(f"{task_name}_PROFILER ?= {task_name}_{profiler}\n")
+            if (profiler != ""): 
+                f.write(f"{task_name}_PROFILER ?= {task_name}_{profiler}\n")
             f.write(f"{task_name}_COMPILER ?= {compiler}\n")
 
             if (len(comp_flags) > 0): 
@@ -154,14 +155,6 @@ if __name__ == "__main__":
             f.write(f"\t{loops}{env_flags}{MAKE} run_{task_name};{closing}\n")
             f.write("\n")
 
-            f.write(f".PHONY: run_{task_name}\nrun_{task_name}:\n")
-            f.write(f"\t{MAKE} compile_{task_name}\n")
-            f.write(f"ifneq ($(TARGET),LCC)\n")
-            f.write(f"\t./$({task_name}_PROFILER) ./$(EXE_FILE)\n")
-            f.write(f"else\n")
-            f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
-            f.write(f"endif\n\n")
-
             f.write(f".PHONY: {task_name}_OPT\n{task_name}_OPT: \n\t{opt_foreach}\n")
             f.write("\n")
 
@@ -184,6 +177,17 @@ if __name__ == "__main__":
 
                 env_array += "NULL }"
                 subprocess.run(["gcc", f"{profiler}.c", f"-DENVS={env_array}", "-o", os.path.join(conf_dir, f"{task_name}_{profiler}")])
+
+            f.write(f".PHONY: run_{task_name}\nrun_{task_name}:\n")
+            f.write(f"\t{MAKE} compile_{task_name}\n")
+            f.write(f"ifneq ($(TARGET),LCC)\n")
+            if (profiler != ""):
+                f.write(f"\t./$({task_name}_PROFILER) ./$(EXE_FILE)\n")
+            else:
+                f.write(f"\t./$(EXE_FILE)\n")
+            f.write(f"else\n")
+            f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
+            f.write(f"endif\n\n")
 
             f.write(f".PHONY: compile_{task_name}\ncompile_{task_name}:\n")
             f.write(f"\t$({task_name}_COMPILER) $(COMPILE_FILE) -o $(EXE_FILE) $({task_name}_CFLAGS) {profiler_flags} $({task_name}_OPTIMIZATION_LEVEL) {' '.join(comp_flags)}\n\n")
