@@ -13,15 +13,24 @@ optimization_levels = [ "3" ]
 
 	[Task1.Flags]
 
-[Task3]
+[Task3_serial]
 
-src = "Ex03/main.c"
+src = "Ex03/serial.c"
 
 links = [ "fopenmp" ]
 optimization_levels = [ "fast" ]
 profiler = "timer"
 
-	[Task3.Env]
+	[Task3_serial.Env]
+
+[Task3_parrallel]
+
+src = "Ex03/parrallel.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+profiler = "timer"
+
+	[Task3_parralel.Env]
 	OMP_NUM_THREADS = [ 1, 8 ]
-	ENV_VAR_DO_PARALLEL = [ 0, 1]
 
