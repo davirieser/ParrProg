@@ -19,18 +19,16 @@ src = "Ex03/serial.c"
 
 links = [ "fopenmp" ]
 optimization_levels = [ "fast" ]
-profiler = "timer"
 
 	[Task3_serial.Env]
 
-[Task3_parrallel]
+[Task3_parallel]
 
-src = "Ex03/parrallel.c"
+src = "Ex03/parallel.c"
 
 links = [ "fopenmp" ]
 optimization_levels = [ "fast" ]
-profiler = "timer"
 
-	[Task3_parralel.Env]
+	[Task3_parallel.Env]
 	OMP_NUM_THREADS = [ 1, 8 ]
 
