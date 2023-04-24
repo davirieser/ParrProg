@@ -187,7 +187,7 @@ if __name__ == "__main__":
                 f.write(f"\t./$(EXE_FILE)\n")
             f.write(f"else\n")
             if (profiler != ""):
-                f.write(f"\tsbatch ../job.sh \"{profiler} $(EXE_FILE)\"\n")
+                f.write(f"\tsbatch ../job.sh \"{task_name}_PROFILER $(EXE_FILE)\"\n")
             else: 
                 f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
             f.write(f"endif\n\n")
