@@ -133,7 +133,7 @@ int time_program(char * program) {
     }
 	void * setup_pointer = setup();
 
-    long (* run)(void *) = dlsym(handle, "setup");
+    long (* run)(void *) = dlsym(handle, "run");
 
     /* Check if an actual Error occured */
     error = dlerror();
