@@ -28,7 +28,6 @@ Task3_serial_EXE := Ex03/serial.c
 Task3_serial_LINKS := -fopenmp
 Task3_serial_OPTIMIZATION_LEVEL ?= -Ofast
 Task3_serial_OPTIMIZATION_LEVELS := -Ofast
-Task3_serial_PROFILER ?= Task3_serial_timer
 Task3_serial_COMPILER ?= gcc
 Task3_serial_CFLAGS=$(STD_CFLAGS) -std=c11 $(Task3_serial_LINKS)
 
@@ -39,7 +38,6 @@ Task3_parrallel_EXE := Ex03/parrallel.c
 Task3_parrallel_LINKS := -fopenmp
 Task3_parrallel_OPTIMIZATION_LEVEL ?= -Ofast
 Task3_parrallel_OPTIMIZATION_LEVELS := -Ofast
-Task3_parrallel_PROFILER ?= Task3_parrallel_timer
 Task3_parrallel_COMPILER ?= gcc
 Task3_parrallel_CFLAGS=$(STD_CFLAGS) -std=c11 $(Task3_parrallel_LINKS)
 
@@ -142,14 +140,14 @@ Task3_serial_OPT:
 run_Task3_serial:
 	$(MAKE) -e --no-print-directory compile_Task3_serial
 ifneq ($(TARGET),LCC)
-	Task3_serial_timer ./$(EXE_FILE)
+	./$(EXE_FILE)
 else
-	sbatch ../job.sh "Task3_serial_timer $(EXE_FILE)"
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: compile_Task3_serial
 compile_Task3_serial:
-	$(Task3_serial_COMPILER) $(COMPILE_FILE) -o $(EXE_FILE) $(Task3_serial_CFLAGS) --shared -fPIC $(Task3_serial_OPTIMIZATION_LEVEL) 
+	$(Task3_serial_COMPILER) $(COMPILE_FILE) -o $(EXE_FILE) $(Task3_serial_CFLAGS)  $(Task3_serial_OPTIMIZATION_LEVEL) 
 
 
 # ------ Recipes for Task3_parrallel (Ex03/parrallel.c) ---------------------------------- #
@@ -176,12 +174,12 @@ Task3_parrallel_OPT:
 run_Task3_parrallel:
 	$(MAKE) -e --no-print-directory compile_Task3_parrallel
 ifneq ($(TARGET),LCC)
-	Task3_parrallel_timer ./$(EXE_FILE)
+	./$(EXE_FILE)
 else
-	sbatch ../job.sh "Task3_parrallel_timer $(EXE_FILE)"
+	sbatch ../job.sh $(EXE_FILE)
 endif
 
 .PHONY: compile_Task3_parrallel
 compile_Task3_parrallel:
-	$(Task3_parrallel_COMPILER) $(COMPILE_FILE) -o $(EXE_FILE) $(Task3_parrallel_CFLAGS) --shared -fPIC $(Task3_parrallel_OPTIMIZATION_LEVEL) 
+	$(Task3_parrallel_COMPILER) $(COMPILE_FILE) -o $(EXE_FILE) $(Task3_parrallel_CFLAGS)  $(Task3_parrallel_OPTIMIZATION_LEVEL) 
 
