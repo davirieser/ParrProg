@@ -142,9 +142,9 @@ Task3_serial_OPT:
 run_Task3_serial:
 	$(MAKE) -e --no-print-directory compile_Task3_serial
 ifneq ($(TARGET),LCC)
-	./$(Task3_serial_PROFILER) ./$(EXE_FILE)
+	Task3_serial_timer ./$(EXE_FILE)
 else
-	sbatch ../job.sh "Task3_serial_PROFILER $(EXE_FILE)"
+	sbatch ../job.sh "Task3_serial_timer $(EXE_FILE)"
 endif
 
 .PHONY: compile_Task3_serial
@@ -176,9 +176,9 @@ Task3_parrallel_OPT:
 run_Task3_parrallel:
 	$(MAKE) -e --no-print-directory compile_Task3_parrallel
 ifneq ($(TARGET),LCC)
-	./$(Task3_parrallel_PROFILER) ./$(EXE_FILE)
+	Task3_parrallel_timer ./$(EXE_FILE)
 else
-	sbatch ../job.sh "Task3_parrallel_PROFILER $(EXE_FILE)"
+	sbatch ../job.sh "Task3_parrallel_timer $(EXE_FILE)"
 endif
 
 .PHONY: compile_Task3_parrallel
