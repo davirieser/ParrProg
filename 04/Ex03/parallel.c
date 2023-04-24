@@ -129,7 +129,7 @@ int main()
     double time = omp_get_wtime() - start_time;
     int numTries = 0;
     FILE *file = fopen("Ex03.csv", "a");
-    while (fprintf(file, "serial; %s; %f\n", getenv("OMP_NUM_THREADS"), time) < 1 && numTries < 10)
+    while (fprintf(file, "parallel; %s; %f\n", getenv("OMP_NUM_THREADS"), time) < 1 && numTries < 10)
     {
         usleep(10000);
         numTries++;
