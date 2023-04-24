@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <omp.h>
 
 #define ARRAY_SIZE 100000000
 
@@ -115,19 +117,32 @@ int main()
 {
     mem_t *mem = (mem_t *)setup();
 
-    printf("[");
-    for (int i = 0; i < ARRAY_SIZE; i ++) {
-        printf("%d, ", mem->a[i]);
-    }
-    printf("]\n");
+    // printf("[");
+    // for (int i = 0; i < ARRAY_SIZE; i ++) {
+    //     printf("%d, ", mem->a[i]);
+    // }
+    // printf("]\n");
+
+    double start_time = omp_get_wtime();
 
     int ret = run(mem);
-    
-    printf("[");
-    for (int i = 0; i < ARRAY_SIZE; i ++) {
-        printf("%d, ", mem->b[i]);
+
+    double time = omp_get_wtime() - start_time;
+    int numTries = 0;
+    FILE *file = fopen("Ex03.csv", "a");
+    while (fprintf(file, "parallel; %s; %f\n", getenv("OMP_NUM_THREADS"), time) < 1 && numTries < 10)
+    {
+        usleep(10000);
+        numTries++;
+        fseek(file, 0, SEEK_END);
     }
-    printf("]\n");
+    fclose(file);
+
+    // printf("[");
+    // for (int i = 0; i < ARRAY_SIZE; i ++) {
+    //     printf("%d, ", mem->b[i]);
+    // }
+    // printf("]\n");
 
     return ret;
 }
