@@ -4,3 +4,10 @@
 	- Thread 2 is the Read Thread
 	- Write Thread writes to the data-Buffer and sets the Written-Flag
 	- The Read Thread waits for the Written-Flag to be set and then prints the data to Stdout
+
+- When the Code is compiled and run, some of the Time the Program enters an endless Loop.
+	- This is because the flag is cached by the Read-Thread as false and never invalidated.
+	- Theoretically sometimes the data should be printed as a random Value but we couldn't observe this yet.
+
+- Where to put Flush Directives?
+	-> See flush.c
