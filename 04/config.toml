@@ -22,5 +22,6 @@ optimization_levels = [ "fast" ]
 profiler = "timer"
 
 	[Task3.Env]
-	OMP_NUM_THREADS = [ 8 ]
-	VARIANT = [ 0, 1, 2]
+	OMP_NUM_THREADS = [ 1, 8 ]
+	ENV_VAR_DO_PARALLEL = [ 0, 1]
+
