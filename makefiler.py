@@ -176,7 +176,7 @@ if __name__ == "__main__":
                     env_array += f"\"{env_name}\", "
 
                 env_array += "NULL }"
-                subprocess.run(["gcc", f"{profiler}.c", f"-DENVS={env_array}", "-o", os.path.join(conf_dir, f"{task_name}_{profiler}")])
+                subprocess.run(["gcc", f"{profiler}.c", f"-DENVS={env_array}", "-ldl", "-o", os.path.join(conf_dir, f"{task_name}_{profiler}")])
 
             f.write(f".PHONY: run_{task_name}\nrun_{task_name}:\n")
             f.write(f"\t{MAKE} compile_{task_name}\n")
