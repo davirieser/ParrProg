@@ -182,11 +182,14 @@ if __name__ == "__main__":
             f.write(f"\t{MAKE} compile_{task_name}\n")
             f.write(f"ifneq ($(TARGET),LCC)\n")
             if (profiler != ""):
-                f.write(f"\t./$({task_name}_PROFILER) ./$(EXE_FILE)\n")
+                f.write(f"\t{task_name}_{profiler} ./$(EXE_FILE)\n")
             else:
                 f.write(f"\t./$(EXE_FILE)\n")
             f.write(f"else\n")
-            f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
+            if (profiler != ""):
+                f.write(f"\tsbatch ../job.sh \"{task_name}_{profiler} $(EXE_FILE)\"\n")
+            else: 
+                f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
             f.write(f"endif\n\n")
 
             f.write(f".PHONY: compile_{task_name}\ncompile_{task_name}:\n")
