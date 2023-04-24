@@ -186,7 +186,10 @@ if __name__ == "__main__":
             else:
                 f.write(f"\t./$(EXE_FILE)\n")
             f.write(f"else\n")
-            f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
+            if (profiler != ""):
+                f.write(f"\tsbatch ../job.sh \"{profiler} $(EXE_FILE)\"\n")
+            else: 
+                f.write(f"\tsbatch ../job.sh $(EXE_FILE)\n")
             f.write(f"endif\n\n")
 
             f.write(f".PHONY: compile_{task_name}\ncompile_{task_name}:\n")
