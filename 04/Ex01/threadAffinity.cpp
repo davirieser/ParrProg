@@ -25,17 +25,12 @@ int main() {
     int numTries = 0;
 
     FILE* file = fopen("data.csv", "a");
-    while(fprintf(file, "%s, %s, %f, %d\n", getenv("OMP_PLACES"), getenv("OMP_PROC_BIND"), time, counter) < 1 && numTries < 10){
+    while(fprintf(file, "%s; %s; %f; %d\n", getenv("OMP_PLACES"), getenv("OMP_PROC_BIND"), time, counter) < 1 && numTries < 10){
         usleep(10000);
         numTries++;
+        fseek(file, 0, SEEK_END);
     }
     fclose(file);
 
     return 0;
 }
-
-#ifdef NOT_DEFINED
-
-export OMP_NUM_THREADS=4 && ./threadAffinity
-
-#endif
