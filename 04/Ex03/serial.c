@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <bool.h>
+#include <stdbool.h>
 
 #define ARRAY_SIZE 100000000
 
