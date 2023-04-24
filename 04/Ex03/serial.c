@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <omp.h>
 
 #define ARRAY_SIZE 100000000
 
