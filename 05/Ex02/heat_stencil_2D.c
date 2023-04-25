@@ -7,6 +7,8 @@
 #define RESOLUTION_WIDTH 50
 #define RESOLUTION_HEIGHT 50
 
+#define FACTOR (0.01)
+
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
 	do { \
@@ -62,15 +64,40 @@ int main(int argc, char **argv) {
     if(!B) PERROR_GOTO(error_b);
     // for each time step ..
     for (int t = 0; t < T; t++) {
-        // todo implement heat propagation
-        // todo make sure the heat source stays the same
+		for (int x = 0; x < N; x ++) {
+			for (int y = 0; y < N; y ++) {
+				B[IND(x,y)] = A[IND(x,y)];
 
-        // every 1000 steps show intermediate step
-        if (!(t % 1000)) {
-            printf("Step t=%d\n", t);
-            printTemperature(A, N, N);
-            printf("\n");
-        }
+				// Ensure Heat Source doesn't change
+				if (x == source_x && y == source_y) {
+					continue;
+				}
+
+				// printf("From %lf", B[IND(x,y)]);
+
+				if (x < (N-1))	B[IND(x,y)] += FACTOR * (A[IND(x+1,y	)] - 273); 
+				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
+				if (x > 0)		B[IND(x,y)] += FACTOR * (A[IND(x-1,y	)] - 273); 
+				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
+				if (y < (N-1))	B[IND(x,y)] += FACTOR * (A[IND(x	,y+1)] - 273); 
+				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
+				if (y > 0)		B[IND(x,y)] += FACTOR * (A[IND(x	,y-1)] - 273); 
+				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
+
+				// printf("to %lf for (%d, %d)\n", B[IND(x,y)], x, y);
+			}
+		}
+
+		double * temp = B;
+		B = A;
+		A = temp;
+
+		if ((t % 50) == 0) {
+			printf("Step t=%d\n", t);
+			printTemperature(A, N, N);
+			printf("\n");
+		}
+
     }
 
 
