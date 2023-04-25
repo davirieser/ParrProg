@@ -9,6 +9,11 @@
 
 #define FACTOR (0.01)
 
+#define SERIAL 0
+#define PARALLEL 1
+
+#define VARIANT PARALLEL
+
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
 	do { \
@@ -64,6 +69,9 @@ int main(int argc, char **argv) {
     if(!B) PERROR_GOTO(error_b);
     // for each time step ..
     for (int t = 0; t < T; t++) {
+#if VARIANT == PARALLEL
+#pragma omp parallel for collapse(2)
+#endif
 		for (int x = 0; x < N; x ++) {
 			for (int y = 0; y < N; y ++) {
 				B[IND(x,y)] = A[IND(x,y)];
