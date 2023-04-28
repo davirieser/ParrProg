@@ -1,8 +1,17 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <omp.h>
 #include <string.h>
+#include <unistd.h>
+
+#include <math.h>
+#ifdef __linux__
+#include <SDL2/SDL.h>
+#elif defined(_WIN32)
+#include <SDL.h>
+#endif
 
 #define RESOLUTION_WIDTH 50
 #define RESOLUTION_HEIGHT 50
@@ -12,7 +21,13 @@
 #define SERIAL 0
 #define PARALLEL 1
 
+#ifndef VARIANT
 #define VARIANT PARALLEL
+#endif//VARIANT
+
+#ifndef DEBUG
+#define DEBUG 0
+#endif//DEBUG
 
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
@@ -26,7 +41,9 @@
 
 #define IND(y, x) ((y) * (N) + (x))
 
-void printTemperature(double *m, int N, int M);
+#if DEBUG
+void render(double * arr, SDL_Renderer * renderer, SDL_Texture * texture, int N);
+#endif
 
 // -- simulation code ---
 
@@ -37,7 +54,42 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
     }
     int T = N * 10;
-    printf("Computing heat-distribution for room size %dX%d for T=%d timesteps\n", N, N, T);
+
+#if DEBUG
+    SDL_Window* window = NULL;
+    SDL_Surface* screenSurface = NULL;
+    SDL_Renderer* renderer = NULL;
+	SDL_Texture* texture = NULL;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        return 1;
+    }
+    window = SDL_CreateWindow(
+		"Heat Stencil", 
+		0, 
+		0, 
+		N, N, 
+		SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS
+	);
+    if (window == NULL) {
+        return 1;
+    }
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL) {
+        return 1;
+    }
+
+	texture = SDL_CreateTexture(
+		renderer, 
+		SDL_PIXELFORMAT_RGBA8888, 
+		SDL_TEXTUREACCESS_STREAMING, 
+		N, N
+	);
+    if (texture == NULL) {
+        return 1;
+    }
+#endif
 
     // ---------- setup ----------
 
@@ -58,9 +110,10 @@ int main(int argc, char **argv) {
     int source_y = N / 4;
     A[IND(source_x,source_y)] = 273 + 60;
 
-    printf("Initial:\n");
-    printTemperature(A, N, N);
-    printf("\n");
+#if DEBUG
+	render(A, renderer, texture, N);
+	usleep(1000);
+#endif
 
     // ---------- compute ----------
 
@@ -70,18 +123,16 @@ int main(int argc, char **argv) {
     // for each time step ..
     for (int t = 0; t < T; t++) {
 #if VARIANT == PARALLEL
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(2) schedule(guided)
 #endif
-		for (int x = 0; x < N; x ++) {
-			for (int y = 0; y < N; y ++) {
+		for (int y = 0; y < N; y ++) {
+			for (int x = 0; x < N; x ++) {
 				B[IND(x,y)] = A[IND(x,y)];
 
 				// Ensure Heat Source doesn't change
 				if (x == source_x && y == source_y) {
 					continue;
 				}
-
-				// printf("From %lf", B[IND(x,y)]);
 
 				if (x < (N-1))	B[IND(x,y)] += FACTOR * (A[IND(x+1,y	)] - 273); 
 				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
@@ -91,8 +142,6 @@ int main(int argc, char **argv) {
 				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
 				if (y > 0)		B[IND(x,y)] += FACTOR * (A[IND(x	,y-1)] - 273); 
 				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
-
-				// printf("to %lf for (%d, %d)\n", B[IND(x,y)], x, y);
 			}
 		}
 
@@ -100,23 +149,17 @@ int main(int argc, char **argv) {
 		B = A;
 		A = temp;
 
-		if ((t % 50) == 0) {
-			printf("Step t=%d\n", t);
-			printTemperature(A, N, N);
-			printf("\n");
-		}
-
+#if DEBUG
+		render(A, renderer, texture, N);
+		usleep(1000);
+#endif
     }
-
 
     // ---------- check ----------
 
-    printf("Final:");
-    printTemperature(A, N, N);
-    printf("\n");
-
-    // simple verification if nowhere the heat is more then the heat source
     int success = 1;
+#if DEBUG
+    // simple verification if nowhere the heat is more then the heat source
     for (long long i = 0; i < N; i++) {
         for (long long j = 0; j < N; j++) {
             double temp = A[IND(i,j)];
@@ -128,66 +171,45 @@ int main(int argc, char **argv) {
     }
 
     printf("Verification: %s\n", (success) ? "OK" : "FAILED");
+#endif
 
-    // todo ---------- cleanup ----------
+
+    // ---------- cleanup ----------
+#if DEBUG
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+#endif
+
     error_b:
     free(B);
     error_a:
     free(A);
+
     return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-void printTemperature(double *m, int N, int M) {
-    const char *colors = " .-:=+*^X#%@";
-    const int numColors = 12;
+#if DEBUG
+void render(double * arr, SDL_Renderer * renderer, SDL_Texture * texture, int N) {
+	int * bytes = NULL;
+	int width;
 
-    // boundaries for temperature (for simplicity hard-coded)
-    const double max = 273 + 30;
-    const double min = 273 + 0;
+	SDL_RenderClear(renderer);
 
-    // set the 'render' resolution
-    int W = RESOLUTION_WIDTH;
-    int H = RESOLUTION_HEIGHT;
+	SDL_LockTexture(texture, NULL, (void **) &bytes, &width);
 
-    // step size in each dimension
-    int sW = N / W;
-    int sH = M / H;
+	for (int y = 0; y < N; y ++) {
+		for (int x = 0; x < N; x ++) {
+			bytes[y * N + x] = lround(arr[IND(y, x)] - 273) ;
+		}
+	}
 
-    // upper wall
-    printf("\t");
-    for (int u = 0; u < W + 2; u++) {
-        printf("X");
-    }
-    printf("\n");
-    // room
-    for (int i = 0; i < H; i++) {
-        // left wall
-        printf("\tX");
-        // actual room
-        for (int j = 0; j < W; j++) {
-            // get max temperature in this tile
-            double max_t = 0;
-            for (int x = sH * i; x < sH * i + sH; x++) {
-                for (int y = sW * j; y < sW * j + sW; y++) {
-                    max_t = (max_t < m[IND(x,y)]) ? m[IND(x,y)] : max_t;
-                }
-            }
-            double temp = max_t;
+	SDL_UnlockTexture(texture);
 
-            // pick the 'color'
-            int c = ((temp - min) / (max - min)) * numColors;
-            c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
 
-            // print the average temperature
-            printf("%c", colors[c]);
-        }
-        // right wall
-        printf("X\n");
-    }
-    // lower wall
-    printf("\t");
-    for (int l = 0; l < W + 2; l++) {
-        printf("X");
-    }
-    printf("\n");
+	SDL_RenderPresent(renderer);
 }
+#endif
+
