@@ -338,7 +338,7 @@ void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N)
     {
         for (int x = 0; x < N; x++)
         {
-            bytes[y * N + x] = lround(arr[IND(y, x)] - 273);
+            bytes[y * N + x] = lround(arr[IND(y, x)] - 273) * (2000000000 / 60);
         }
     }
 
