@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <omp.h>
 
 #define SERIAL 0
 #define DYNAMIC 1
@@ -149,6 +150,8 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	double startTime = omp_get_wtime();
+
 	long (*delannoyFuncton)(long _n, long _m);
 	switch (variant)
 	{
@@ -167,7 +170,12 @@ int main()
 		break;
 	}
 
-	printf("Delannoy(%ld, %ld) = %ld\n", n, m, delannoyFuncton(n, m));
+	double timeTaken = startTime - omp_get_wtime();
+
+	FILE* file = fopen("Ex01.csv", "a");
+	fprintf(file, "%d;%d;%d;%lf\n", variant, m, n, timeTaken);
+	fclose(file);
+	// printf("Delannoy(%ld, %ld) = %ld\n", n, m, delannoyFuncton(n, m));
 
 	return 0;
 }
