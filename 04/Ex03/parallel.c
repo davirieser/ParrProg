@@ -6,6 +6,7 @@
 #include <omp.h>
 
 #define ARRAY_SIZE 100000000
+#define MIN_SIZE (ARRAY_SIZE / 8)
 
 typedef struct mem
 {
@@ -56,9 +57,9 @@ void p_merge(int *c, int *a, int *b, int na, int nb)
 
         c[ma + mb] = a[ma];
 
-#pragma omp task
+#pragma omp task if (na + nb > MIN_SIZE)
         p_merge(c, a, b, ma, mb);
-#pragma omp task
+#pragma omp task if (na + nb > MIN_SIZE)
         p_merge(c + ma + mb + 1, a + ma + 1, b + mb, na - (ma + 1), nb - mb);
 #pragma omp taskwait
     }
@@ -74,9 +75,9 @@ void p_merge_sort(int *b, int *a, int n)
     {
         int *c = malloc(n * sizeof(int));
 
-#pragma omp task
+#pragma omp task if (n > MIN_SIZE)
         p_merge_sort(c, a, n / 2);
-#pragma omp task
+#pragma omp task if (n > MIN_SIZE)
         p_merge_sort(c + n / 2, a + n / 2, n - (n / 2));
 #pragma omp taskwait
         p_merge(b, c, c + (n / 2), n / 2, n - (n / 2));
@@ -108,7 +109,11 @@ int run(void *args)
 {
     mem_t *mem = args;
 
-    p_merge_sort(mem->b, mem->a, ARRAY_SIZE);
+#pragma omp parallel
+    {
+#pragma omp single
+        p_merge_sort(mem->b, mem->a, ARRAY_SIZE);
+    }
 
     return 0;
 }

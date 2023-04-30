@@ -5,7 +5,7 @@
 #include <time.h>
 #include "../../includes/CSVHandler.h"
 
-#define NUM_ITERATIONS 2'000'000'000
+#define NUM_ITERATIONS 80'000'000
 
 int main() {
     long long i;
@@ -14,7 +14,7 @@ int main() {
 
     start_time = omp_get_wtime();
 
-    #pragma omp parallel for schedule(auto) reduction(+:counter)
+    #pragma omp parallel for
     for (i = 0; i < NUM_ITERATIONS; i++) {
         #pragma omp atomic
         counter++;
