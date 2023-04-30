@@ -8,7 +8,7 @@
 #include <math.h>
 
 #ifndef DEBUG
-#define DEBUG 1
+#define DEBUG 0
 #endif // DEBUG
 
 #if DEBUG && SDL
@@ -50,7 +50,6 @@ void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N);
 #endif
 void printTemperature(double *m, int N, int M);
 
-
 // -- simulation code ---
 
 #define SAVE_STRTOL(charPtr, endPtr, resultVar)                                \
@@ -66,39 +65,66 @@ void printTemperature(double *m, int N, int M);
         return EXIT_FAILURE;                                                   \
     }
 
+double calcualteNewValue(double leftVal, double rightVal, double upperVal, double lowerVal, double centerVal)
+{
+    return centerVal + FACTOR * ((leftVal - 273) + (rightVal - 273) - 4 * (centerVal - 273) + (lowerVal - 273) + (upperVal - 273));
+}
+
+void assignNewValue(double *A, double *B, int x, int y, int source_x, int source_y, int N)
+{
+    if (x == source_x && y == source_y)
+    {
+        B[IND(x, y)] = A[IND(x, y)];
+    }
+    else
+    {
+
+        int leftIdx_x = x - 1;
+        int leftIdx_y = y;
+        int rightIdx_x = x + 1;
+        int rightIdx_y = y;
+        int centerIdx_x = x;
+        int centerIdx_y = y;
+        int upperIdx_x = x;
+        int upperIdx_y = y + 1;
+        int lowerIdx_x = x;
+        int lowerIdx_y = y - 1;
+        if (x == 0)
+        {
+            leftIdx_x = x;
+        }
+        else if (x == N - 1)
+        {
+            rightIdx_x = x;
+        }
+        if (y == 0)
+        {
+            lowerIdx_y = y;
+        }
+        else if (y == N - 1)
+        {
+            upperIdx_y = y;
+        }
+
+        B[IND(x, y)] = calcualteNewValue(
+            A[IND(leftIdx_x, leftIdx_y)],
+            A[IND(rightIdx_x, rightIdx_y)],
+            A[IND(upperIdx_x, upperIdx_y)],
+            A[IND(lowerIdx_x, lowerIdx_y)],
+            A[IND(centerIdx_x, centerIdx_y)]);
+    }
+}
+
 void executeParallelStep(double **B_param, double **A_param, int N, int source_x, int source_y)
 {
     double *B = *B_param;
     double *A = *A_param;
 #pragma omp parallel for collapse(2) schedule(guided)
-    for (int y = 0; y < N; y++)
+    for (int x = 0; x < N; x++)
     {
-        for (int x = 0; x < N; x++)
+        for (int y = 0; y < N; y++)
         {
-            B[IND(x, y)] = A[IND(x, y)];
-
-            // Ensure Heat Source doesn't change
-            if (x == source_x && y == source_y)
-            {
-                continue;
-            }
-
-            if (x < (N - 1))
-                B[IND(x, y)] += FACTOR * (A[IND(x + 1, y)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (x > 0)
-                B[IND(x, y)] += FACTOR * (A[IND(x - 1, y)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (y < (N - 1))
-                B[IND(x, y)] += FACTOR * (A[IND(x, y + 1)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (y > 0)
-                B[IND(x, y)] += FACTOR * (A[IND(x, y - 1)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            assignNewValue(A, B, x, y, source_x, source_y, N);
         }
     }
 
@@ -111,36 +137,14 @@ void executeParallelStep(double **B_param, double **A_param, int N, int source_x
 
 void executeSerialStep(double **B_param, double **A_param, int N, int source_x, int source_y)
 {
+    // printf("In parallel\n");
     double *B = *B_param;
     double *A = *A_param;
     for (int y = 0; y < N; y++)
     {
         for (int x = 0; x < N; x++)
         {
-            B[IND(x, y)] = A[IND(x, y)];
-
-            // Ensure Heat Source doesn't change
-            if (x == source_x && y == source_y)
-            {
-                continue;
-            }
-
-            if (x < (N - 1))
-                B[IND(x, y)] += FACTOR * (A[IND(x + 1, y)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (x > 0)
-                B[IND(x, y)] += FACTOR * (A[IND(x - 1, y)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (y < (N - 1))
-                B[IND(x, y)] += FACTOR * (A[IND(x, y + 1)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
-            if (y > 0)
-                B[IND(x, y)] += FACTOR * (A[IND(x, y - 1)] - 273);
-            else
-                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            assignNewValue(A, B, x, y, source_x, source_y, N);
         }
     }
 

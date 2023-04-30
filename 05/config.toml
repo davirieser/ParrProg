@@ -13,3 +13,17 @@ optimization_levels = [ "fast" ]
 	ENVVAR_SIZE_N = [ 12 ]
 
 	[Task1.Flags]
+
+[Task2]
+
+src = "Ex02/heat_stencil_2D.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2.Env]
+	OMP_NUM_THREADS = [ 1, 8 ]
+	ENVVAR_VARIANT = [ 0, 1 ]
+	ENVVAR_N = [ 10, 20, 50, 100, 200, 300, 400, 500 ]
+
+	[Task2.Flags]
