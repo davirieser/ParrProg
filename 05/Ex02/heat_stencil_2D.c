@@ -5,12 +5,18 @@
 #include <omp.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <math.h>
+
+#ifndef DEBUG
+#define DEBUG 0
+#endif // DEBUG
+
+#if DEBUG
 #ifdef __linux__
 #include <SDL2/SDL.h>
 #elif defined(_WIN32)
 #include <SDL.h>
+#endif
 #endif
 
 #define RESOLUTION_WIDTH 50
@@ -21,72 +27,174 @@
 #define SERIAL 0
 #define PARALLEL 1
 
-#ifndef VARIANT
-#define VARIANT PARALLEL
-#endif//VARIANT
-
-#ifndef DEBUG
-#define DEBUG 0
-#endif//DEBUG
+#define ENVVAR_N "ENVVAR_N"
+#define ENVVAR_VARIANT "ENVVAR_VARIANT"
 
 #define PERROR fprintf(stderr, "%s:%d: error: %s\n", __FILE__, __LINE__, strerror(errno))
 #define PERROR_GOTO(label) \
-	do { \
-		PERROR; \
-		goto label; \
-	} while (0)
-
+    do                     \
+    {                      \
+        PERROR;            \
+        goto label;        \
+    } while (0)
 
 // -- vector utilities --
 
 #define IND(y, x) ((y) * (N) + (x))
 
 #if DEBUG
-void render(double * arr, SDL_Renderer * renderer, SDL_Texture * texture, int N);
+void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N);
 #endif
 
 // -- simulation code ---
 
-int main(int argc, char **argv) {
-    // 'parsing' optional input parameter = problem size
+#define SAVE_STRTOL(charPtr, endPtr, resultVar)                                \
+    if (charPtr == NULL)                                                       \
+    {                                                                          \
+        printf("%d - %s was NULL\n", __LINE__, #charPtr);                      \
+        return EXIT_FAILURE;                                                   \
+    }                                                                          \
+    resultVar = strtol(charPtr, &endPtr, 10);                                  \
+    if (*endPtr != '\0')                                                       \
+    {                                                                          \
+        printf("Could not parse \"%s\", \"%s\" remained.\n", charPtr, endPtr); \
+        return EXIT_FAILURE;                                                   \
+    }
+
+void executeParallelStep(double **B_param, double **A_param, int N, int source_x, int source_y)
+{
+    double *B = *B_param;
+    double *A = *A_param;
+#pragma omp parallel for collapse(2) schedule(guided)
+    for (int y = 0; y < N; y++)
+    {
+        for (int x = 0; x < N; x++)
+        {
+            B[IND(x, y)] = A[IND(x, y)];
+
+            // Ensure Heat Source doesn't change
+            if (x == source_x && y == source_y)
+            {
+                continue;
+            }
+
+            if (x < (N - 1))
+                B[IND(x, y)] += FACTOR * (A[IND(x + 1, y)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (x > 0)
+                B[IND(x, y)] += FACTOR * (A[IND(x - 1, y)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (y < (N - 1))
+                B[IND(x, y)] += FACTOR * (A[IND(x, y + 1)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (y > 0)
+                B[IND(x, y)] += FACTOR * (A[IND(x, y - 1)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+        }
+    }
+
+    double *temp = B;
+    B = A;
+    A = temp;
+    *B_param = B;
+    *A_param = A;
+}
+
+void executeSerialStep(double **B_param, double **A_param, int N, int source_x, int source_y)
+{
+    double *B = *B_param;
+    double *A = *A_param;
+    for (int y = 0; y < N; y++)
+    {
+        for (int x = 0; x < N; x++)
+        {
+            B[IND(x, y)] = A[IND(x, y)];
+
+            // Ensure Heat Source doesn't change
+            if (x == source_x && y == source_y)
+            {
+                continue;
+            }
+
+            if (x < (N - 1))
+                B[IND(x, y)] += FACTOR * (A[IND(x + 1, y)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (x > 0)
+                B[IND(x, y)] += FACTOR * (A[IND(x - 1, y)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (y < (N - 1))
+                B[IND(x, y)] += FACTOR * (A[IND(x, y + 1)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+            if (y > 0)
+                B[IND(x, y)] += FACTOR * (A[IND(x, y - 1)] - 273);
+            else
+                B[IND(x, y)] += FACTOR * (A[IND(x, y)] - 273);
+        }
+    }
+
+    double *temp = B;
+    B = A;
+    A = temp;
+    *B_param = B;
+    *A_param = A;
+}
+
+int main(int argc, char **argv)
+{
+    char *envvar_variant = getenv(ENVVAR_VARIANT);
+    char *envvar_n = getenv(ENVVAR_N);
+    char *endPtr;
+    int variant;
     int N = 200;
-    if (argc > 1) {
-        N = atoi(argv[1]);
+    SAVE_STRTOL(envvar_variant, endPtr, variant);
+    // 'parsing' optional eviromentVar = problem size
+    if (envvar_n != NULL)
+    {
+        SAVE_STRTOL(envvar_n, endPtr, N);
     }
     int T = N * 10;
 
 #if DEBUG
-    SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
-    SDL_Renderer* renderer = NULL;
-	SDL_Texture* texture = NULL;
+    SDL_Window *window = NULL;
+    SDL_Surface *screenSurface = NULL;
+    SDL_Renderer *renderer = NULL;
+    SDL_Texture *texture = NULL;
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
         return 1;
     }
     window = SDL_CreateWindow(
-		"Heat Stencil", 
-		0, 
-		0, 
-		N, N, 
-		SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS
-	);
-    if (window == NULL) {
+        "Heat Stencil",
+        0,
+        0,
+        N, N,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_BORDERLESS);
+    if (window == NULL)
+    {
         return 1;
     }
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL) {
+    if (renderer == NULL)
+    {
         return 1;
     }
 
-	texture = SDL_CreateTexture(
-		renderer, 
-		SDL_PIXELFORMAT_RGBA8888, 
-		SDL_TEXTUREACCESS_STREAMING, 
-		N, N
-	);
-    if (texture == NULL) {
+    texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_RGBA8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        N, N);
+    if (texture == NULL)
+    {
         return 1;
     }
 #endif
@@ -94,64 +202,55 @@ int main(int argc, char **argv) {
     // ---------- setup ----------
 
     // create a buffer for storing temperature fields
-    double *A =  malloc(sizeof(double) * N * N);
+    double *A = malloc(sizeof(double) * N * N);
 
-    if(!A) PERROR_GOTO(error_a);
+    if (!A)
+        PERROR_GOTO(error_a);
 
     // set up initial conditions in A
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            A[IND(i,j)] = 273; // temperature is 0° C everywhere (273 K)
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            A[IND(i, j)] = 273; // temperature is 0° C everywhere (273 K)
         }
     }
 
     // and there is a heat source
     int source_x = N / 4;
     int source_y = N / 4;
-    A[IND(source_x,source_y)] = 273 + 60;
+    A[IND(source_x, source_y)] = 273 + 60;
 
 #if DEBUG
-	render(A, renderer, texture, N);
-	usleep(1000);
+    render(A, renderer, texture, N);
+    usleep(1000);
 #endif
 
     // ---------- compute ----------
 
     // create a second buffer for the computation
     double *B = malloc(sizeof(double) * N * N);
-    if(!B) PERROR_GOTO(error_b);
+    if (!B)
+        PERROR_GOTO(error_b);
     // for each time step ..
-    for (int t = 0; t < T; t++) {
-#if VARIANT == PARALLEL
-#pragma omp parallel for collapse(2) schedule(guided)
-#endif
-		for (int y = 0; y < N; y ++) {
-			for (int x = 0; x < N; x ++) {
-				B[IND(x,y)] = A[IND(x,y)];
-
-				// Ensure Heat Source doesn't change
-				if (x == source_x && y == source_y) {
-					continue;
-				}
-
-				if (x < (N-1))	B[IND(x,y)] += FACTOR * (A[IND(x+1,y	)] - 273); 
-				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
-				if (x > 0)		B[IND(x,y)] += FACTOR * (A[IND(x-1,y	)] - 273); 
-				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
-				if (y < (N-1))	B[IND(x,y)] += FACTOR * (A[IND(x	,y+1)] - 273); 
-				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
-				if (y > 0)		B[IND(x,y)] += FACTOR * (A[IND(x	,y-1)] - 273); 
-				else			B[IND(x,y)] += FACTOR * (A[IND(x	,y	)] - 273); 
-			}
-		}
-
-		double * temp = B;
-		B = A;
-		A = temp;
+    for (int t = 0; t < T; t++)
+    {
+        switch (variant)
+        {
+        case SERIAL:
+            executeSerialStep(&B, &A, N, source_x, source_y);
+            break;
+        case PARALLEL:
+            executeParallelStep(&B, &A, N, source_x, source_y);
+            break;
+        default:
+            printf("Variant was not allowed value. Value was %d\n", variant);
+            break;
+        }
 
 #if DEBUG
-		render(A, renderer, texture, N);
-		usleep(1000);
+        render(A, renderer, texture, N);
+        usleep(1000);
 #endif
     }
 
@@ -160,9 +259,11 @@ int main(int argc, char **argv) {
     int success = 1;
 #if DEBUG
     // simple verification if nowhere the heat is more then the heat source
-    for (long long i = 0; i < N; i++) {
-        for (long long j = 0; j < N; j++) {
-            double temp = A[IND(i,j)];
+    for (long long i = 0; i < N; i++)
+    {
+        for (long long j = 0; j < N; j++)
+        {
+            double temp = A[IND(i, j)];
             if (273 <= temp && temp <= 273 + 60)
                 continue;
             success = 0;
@@ -173,43 +274,44 @@ int main(int argc, char **argv) {
     printf("Verification: %s\n", (success) ? "OK" : "FAILED");
 #endif
 
-
     // ---------- cleanup ----------
 #if DEBUG
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 #endif
 
-    error_b:
+error_b:
     free(B);
-    error_a:
+error_a:
     free(A);
 
     return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 #if DEBUG
-void render(double * arr, SDL_Renderer * renderer, SDL_Texture * texture, int N) {
-	int * bytes = NULL;
-	int width;
+void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N)
+{
+    int *bytes = NULL;
+    int width;
 
-	SDL_RenderClear(renderer);
+    SDL_RenderClear(renderer);
 
-	SDL_LockTexture(texture, NULL, (void **) &bytes, &width);
+    SDL_LockTexture(texture, NULL, (void **)&bytes, &width);
 
-	for (int y = 0; y < N; y ++) {
-		for (int x = 0; x < N; x ++) {
-			bytes[y * N + x] = lround(arr[IND(y, x)] - 273) ;
-		}
-	}
+    for (int y = 0; y < N; y++)
+    {
+        for (int x = 0; x < N; x++)
+        {
+            bytes[y * N + x] = lround(arr[IND(y, x)] - 273);
+        }
+    }
 
-	SDL_UnlockTexture(texture);
+    SDL_UnlockTexture(texture);
 
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
 
-	SDL_RenderPresent(renderer);
+    SDL_RenderPresent(renderer);
 }
 #endif
-
