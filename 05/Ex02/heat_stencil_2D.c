@@ -42,7 +42,8 @@
 
 #define IND(y, x) ((y) * (N) + (x))
 
-#if DEBUG
+#if DEBUG 
+void printTemperature(double *m, int N, int M);
 void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N);
 #endif
 
@@ -161,7 +162,7 @@ int main(int argc, char **argv)
     }
     int T = N * 10;
 
-#if DEBUG
+#if DEBUG && SDL
     SDL_Window *window = NULL;
     SDL_Surface *screenSurface = NULL;
     SDL_Renderer *renderer = NULL;
@@ -222,8 +223,16 @@ int main(int argc, char **argv)
     A[IND(source_x, source_y)] = 273 + 60;
 
 #if DEBUG
+#if SDL
     render(A, renderer, texture, N);
     usleep(1000);
+#else 
+    printf("Computing heat-distribution for room size %dX%d for T=%d timesteps\n", N, N, T);
+
+    printf("Initial:");
+    printTemperature(A, N, N);
+    printf("\n");
+#endif
 #endif
 
     // ---------- compute ----------
@@ -249,8 +258,17 @@ int main(int argc, char **argv)
         }
 
 #if DEBUG
+#if SDL
         render(A, renderer, texture, N);
         usleep(1000);
+#else 
+		// every 1000 steps show intermediate step
+        if (!(t % 1000)) {
+            printf("Step t=%d\n", t);
+            printTemperature(A, N, N);
+            printf("\n");
+        }
+#endif
 #endif
     }
 
@@ -275,7 +293,7 @@ int main(int argc, char **argv)
 #endif
 
     // ---------- cleanup ----------
-#if DEBUG
+#if DEBUG && SDL
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -291,6 +309,7 @@ error_a:
 }
 
 #if DEBUG
+#if SDL
 void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N)
 {
     int *bytes = NULL;
@@ -314,4 +333,62 @@ void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N)
 
     SDL_RenderPresent(renderer);
 }
+
+#else
+
+void printTemperature(double *m, int N, int M) {
+    const char *colors = " .-:=+*^X#%@";
+    const int numColors = 12;
+
+    // boundaries for temperature (for simplicity hard-coded)
+    const double max = 273 + 30;
+    const double min = 273 + 0;
+
+    // set the 'render' resolution
+    int W = RESOLUTION_WIDTH;
+    int H = RESOLUTION_HEIGHT;
+
+    // step size in each dimension
+    int sW = N / W;
+    int sH = M / H;
+
+    // upper wall
+    printf("\t");
+    for (int u = 0; u < W + 2; u++) {
+        printf("X");
+    }
+    printf("\n");
+    // room
+    for (int i = 0; i < H; i++) {
+        // left wall
+        printf("\tX");
+        // actual room
+        for (int j = 0; j < W; j++) {
+            // get max temperature in this tile
+            double max_t = 0;
+            for (int x = sH * i; x < sH * i + sH; x++) {
+                for (int y = sW * j; y < sW * j + sW; y++) {
+                    max_t = (max_t < m[IND(x,y)]) ? m[IND(x,y)] : max_t;
+                }
+            }
+            double temp = max_t;
+
+            // pick the 'color'
+            int c = ((temp - min) / (max - min)) * numColors;
+            c = (c >= numColors) ? numColors - 1 : ((c < 0) ? 0 : c);
+
+            // print the average temperature
+            printf("%c", colors[c]);
+        }
+        // right wall
+        printf("X\n");
+    }
+    // lower wall
+    printf("\t");
+    for (int l = 0; l < W + 2; l++) {
+        printf("X");
+    }
+    printf("\n");
+}
+#endif
 #endif
