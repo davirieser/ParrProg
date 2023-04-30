@@ -4,7 +4,7 @@
 STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
-TARGET=LOCAL
+TARGET=LCC
 # ------ Configuration Values for Task1 (Ex01/delannoy.c) ---------------------------------- #
 
 Task1_FILE := Ex01/delannoy.c
