@@ -5,14 +5,14 @@ STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
 TARGET=LOCAL
-# ------ Configuration Values for Task1 (Ex01/threadAffinity.cpp) ---------------------------------- #
+# ------ Configuration Values for Task1 (Ex01/delannoy.c) ---------------------------------- #
 
-Task1_FILE := Ex01/threadAffinity.cpp
-Task1_EXE := Ex01/threadAffinity.cpp
+Task1_FILE := Ex01/delannoy.c
+Task1_EXE := Ex01/delannoy.c
 Task1_LINKS := -fopenmp
 Task1_OPTIMIZATION_LEVEL ?= -Ofast
 Task1_OPTIMIZATION_LEVELS := -Ofast
-Task1_COMPILER ?= g++
+Task1_COMPILER ?= gcc
 	Task1_OMP_NUM_THREADS ?= 1
 	Task1_OMP_NUM_THREADS_VALUES = 1 8
 	Task1_ENVVAR_VARIANT ?= 0
@@ -21,14 +21,14 @@ Task1_COMPILER ?= g++
 	Task1_ENVVAR_SIZE_M_VALUES = 12
 	Task1_ENVVAR_SIZE_N ?= 12
 	Task1_ENVVAR_SIZE_N_VALUES = 12
-Task1_CFLAGS=$(STD_CFLAGS)  $(Task1_LINKS)
+Task1_CFLAGS=$(STD_CFLAGS) -std=c11 $(Task1_LINKS)
 
 # ------ Run all Tasks Recipe ----- #
 
 .PHONY: all
 all: Task1
 
-# ------ Recipes for Task1 (Ex01/threadAffinity.cpp) ---------------------------------- #
+# ------ Recipes for Task1 (Ex01/delannoy.c) ---------------------------------- #
 
 .PHONY: Task1
 Task1:
@@ -41,8 +41,8 @@ Task1:
 						export ENVVAR_VARIANT=$(Task1_ENVVAR_VARIANT) &&  \
 						export ENVVAR_SIZE_M=$(Task1_ENVVAR_SIZE_M) &&  \
 						export ENVVAR_SIZE_N=$(Task1_ENVVAR_SIZE_N) &&  \
-						COMPILE_FILE=Ex01/threadAffinity.cpp \
-						EXE_FILE=Ex01/threadAffinity \
+						COMPILE_FILE=Ex01/delannoy.c \
+						EXE_FILE=Ex01/delannoy \
 						OPTIMIZATION_LEVEL=$(opt) \
 						$(MAKE) -e --no-print-directory run_Task1; \
 					) \
@@ -54,8 +54,8 @@ Task1:
 .PHONY: Task1_OPT
 Task1_OPT: 
 	@ $(foreach opt,$(Task1_OPTIMIZATION_LEVELS), \
-		COMPILE_FILE=Ex01/threadAffinity.cpp \
-		EXE_FILE=Ex01/threadAffinity \
+		COMPILE_FILE=Ex01/delannoy.c \
+		EXE_FILE=Ex01/delannoy \
 		Task1_OPTIMIZATION_LEVEL=$(opt) \
 		$(MAKE) -e --no-print-directory run_Task1; \
 	)
@@ -63,8 +63,8 @@ Task1_OPT:
 .PHONY: Task1_OMP_NUM_THREADS
 Task1_OMP_NUM_THREADS:
 	$(foreach val,$(Task1_OMP_NUM_THREADS_VALUES), \
-		COMPILE_FILE=Ex01/threadAffinity.cpp \
-		EXE_FILE=Ex01/threadAffinity \
+		COMPILE_FILE=Ex01/delannoy.c \
+		EXE_FILE=Ex01/delannoy \
 		Task1_OMP_NUM_THREADS=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)
@@ -72,8 +72,8 @@ Task1_OMP_NUM_THREADS:
 .PHONY: Task1_ENVVAR_VARIANT
 Task1_ENVVAR_VARIANT:
 	$(foreach val,$(Task1_ENVVAR_VARIANT_VALUES), \
-		COMPILE_FILE=Ex01/threadAffinity.cpp \
-		EXE_FILE=Ex01/threadAffinity \
+		COMPILE_FILE=Ex01/delannoy.c \
+		EXE_FILE=Ex01/delannoy \
 		Task1_ENVVAR_VARIANT=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)
@@ -81,8 +81,8 @@ Task1_ENVVAR_VARIANT:
 .PHONY: Task1_ENVVAR_SIZE_M
 Task1_ENVVAR_SIZE_M:
 	$(foreach val,$(Task1_ENVVAR_SIZE_M_VALUES), \
-		COMPILE_FILE=Ex01/threadAffinity.cpp \
-		EXE_FILE=Ex01/threadAffinity \
+		COMPILE_FILE=Ex01/delannoy.c \
+		EXE_FILE=Ex01/delannoy \
 		Task1_ENVVAR_SIZE_M=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)
@@ -90,8 +90,8 @@ Task1_ENVVAR_SIZE_M:
 .PHONY: Task1_ENVVAR_SIZE_N
 Task1_ENVVAR_SIZE_N:
 	$(foreach val,$(Task1_ENVVAR_SIZE_N_VALUES), \
-		COMPILE_FILE=Ex01/threadAffinity.cpp \
-		EXE_FILE=Ex01/threadAffinity \
+		COMPILE_FILE=Ex01/delannoy.c \
+		EXE_FILE=Ex01/delannoy \
 		Task1_ENVVAR_SIZE_N=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)

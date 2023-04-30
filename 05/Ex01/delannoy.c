@@ -74,7 +74,7 @@ long delannoy_parallel(long _n, long _m)
 	long *arr = malloc(n * m * sizeof(long));
 	long **mem = malloc(n * sizeof(long *));
 
-#pragma omp parrallel
+#pragma omp parallel
 	{
 #pragma omp taskloop
 		for (long i = 0; i < n; i++)
@@ -150,7 +150,6 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	double startTime = omp_get_wtime();
 
 	long (*delannoyFuncton)(long _n, long _m);
 	switch (variant)
@@ -169,11 +168,12 @@ int main()
 		return EXIT_FAILURE;
 		break;
 	}
-
-	double timeTaken = startTime - omp_get_wtime();
+	double startTime = omp_get_wtime();
+	delannoyFuncton(n, m);
+	double timeTaken = omp_get_wtime() - startTime;
 
 	FILE* file = fopen("Ex01.csv", "a");
-	fprintf(file, "%d;%d;%d;%lf\n", variant, m, n, timeTaken);
+	fprintf(file, "%d;%d;%ld;%ld;%lf\n", variant, omp_get_max_threads(), m, n, timeTaken);
 	fclose(file);
 	// printf("Delannoy(%ld, %ld) = %ld\n", n, m, delannoyFuncton(n, m));
 
