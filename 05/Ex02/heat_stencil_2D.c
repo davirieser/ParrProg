@@ -8,10 +8,10 @@
 #include <math.h>
 
 #ifndef DEBUG
-#define DEBUG 0
+#define DEBUG 1
 #endif // DEBUG
 
-#if DEBUG
+#if DEBUG && SDL
 #ifdef __linux__
 #include <SDL2/SDL.h>
 #elif defined(_WIN32)
@@ -42,10 +42,14 @@
 
 #define IND(y, x) ((y) * (N) + (x))
 
-#if DEBUG 
+#if DEBUG
 void printTemperature(double *m, int N, int M);
+#if SDL
 void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N);
 #endif
+#endif
+void printTemperature(double *m, int N, int M);
+
 
 // -- simulation code ---
 
@@ -226,7 +230,7 @@ int main(int argc, char **argv)
 #if SDL
     render(A, renderer, texture, N);
     usleep(1000);
-#else 
+#else
     printf("Computing heat-distribution for room size %dX%d for T=%d timesteps\n", N, N, T);
 
     printf("Initial:");
@@ -241,6 +245,7 @@ int main(int argc, char **argv)
     double *B = malloc(sizeof(double) * N * N);
     if (!B)
         PERROR_GOTO(error_b);
+    double startTime = omp_get_wtime();
     // for each time step ..
     for (int t = 0; t < T; t++)
     {
@@ -261,9 +266,10 @@ int main(int argc, char **argv)
 #if SDL
         render(A, renderer, texture, N);
         usleep(1000);
-#else 
-		// every 1000 steps show intermediate step
-        if (!(t % 1000)) {
+#else
+        // every 1000 steps show intermediate step
+        if (!(t % 1000))
+        {
             printf("Step t=%d\n", t);
             printTemperature(A, N, N);
             printf("\n");
@@ -271,6 +277,7 @@ int main(int argc, char **argv)
 #endif
 #endif
     }
+    double totalTime = omp_get_wtime() - startTime;
 
     // ---------- check ----------
 
@@ -305,6 +312,10 @@ error_b:
 error_a:
     free(A);
 
+    FILE *file = fopen("Ex02.csv", "a");
+    fprintf(file, "%d;%d;%d;%lf\n", variant, omp_get_max_threads(), N, totalTime);
+    fclose(file);
+
     return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
@@ -336,7 +347,8 @@ void render(double *arr, SDL_Renderer *renderer, SDL_Texture *texture, int N)
 
 #else
 
-void printTemperature(double *m, int N, int M) {
+void printTemperature(double *m, int N, int M)
+{
     const char *colors = " .-:=+*^X#%@";
     const int numColors = 12;
 
@@ -354,21 +366,26 @@ void printTemperature(double *m, int N, int M) {
 
     // upper wall
     printf("\t");
-    for (int u = 0; u < W + 2; u++) {
+    for (int u = 0; u < W + 2; u++)
+    {
         printf("X");
     }
     printf("\n");
     // room
-    for (int i = 0; i < H; i++) {
+    for (int i = 0; i < H; i++)
+    {
         // left wall
         printf("\tX");
         // actual room
-        for (int j = 0; j < W; j++) {
+        for (int j = 0; j < W; j++)
+        {
             // get max temperature in this tile
             double max_t = 0;
-            for (int x = sH * i; x < sH * i + sH; x++) {
-                for (int y = sW * j; y < sW * j + sW; y++) {
-                    max_t = (max_t < m[IND(x,y)]) ? m[IND(x,y)] : max_t;
+            for (int x = sH * i; x < sH * i + sH; x++)
+            {
+                for (int y = sW * j; y < sW * j + sW; y++)
+                {
+                    max_t = (max_t < m[IND(x, y)]) ? m[IND(x, y)] : max_t;
                 }
             }
             double temp = max_t;
@@ -385,7 +402,8 @@ void printTemperature(double *m, int N, int M) {
     }
     // lower wall
     printf("\t");
-    for (int l = 0; l < W + 2; l++) {
+    for (int l = 0; l < W + 2; l++)
+    {
         printf("X");
     }
     printf("\n");
