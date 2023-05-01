@@ -17,10 +17,8 @@ Task1_COMPILER ?= gcc
 	Task1_OMP_NUM_THREADS_VALUES = 1 8
 	Task1_ENVVAR_VARIANT ?= 0
 	Task1_ENVVAR_VARIANT_VALUES = 0 1 2
-	Task1_ENVVAR_SIZE_M ?= 12
-	Task1_ENVVAR_SIZE_M_VALUES = 12
-	Task1_ENVVAR_SIZE_N ?= 12
-	Task1_ENVVAR_SIZE_N_VALUES = 12
+	Task1_ENVVAR_SIZE_M ?= 3
+	Task1_ENVVAR_SIZE_M_VALUES = 3 4 5 7 9 11 13 15
 Task1_CFLAGS=$(STD_CFLAGS) -std=c11 $(Task1_LINKS)
 
 # ------ Configuration Values for Task2 (Ex02/heat_stencil_2D.c) ---------------------------------- #
@@ -52,16 +50,13 @@ Task1:
 		$(foreach Task1_OMP_NUM_THREADS, $(Task1_OMP_NUM_THREADS_VALUES), \
 			$(foreach Task1_ENVVAR_VARIANT, $(Task1_ENVVAR_VARIANT_VALUES), \
 				$(foreach Task1_ENVVAR_SIZE_M, $(Task1_ENVVAR_SIZE_M_VALUES), \
-					$(foreach Task1_ENVVAR_SIZE_N, $(Task1_ENVVAR_SIZE_N_VALUES), \
-						export OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) &&  \
-						export ENVVAR_VARIANT=$(Task1_ENVVAR_VARIANT) &&  \
-						export ENVVAR_SIZE_M=$(Task1_ENVVAR_SIZE_M) &&  \
-						export ENVVAR_SIZE_N=$(Task1_ENVVAR_SIZE_N) &&  \
-						COMPILE_FILE=Ex01/delannoy.c \
-						EXE_FILE=Ex01/delannoy \
-						OPTIMIZATION_LEVEL=$(opt) \
-						$(MAKE) -e --no-print-directory run_Task1; \
-					) \
+					export OMP_NUM_THREADS=$(Task1_OMP_NUM_THREADS) &&  \
+					export ENVVAR_VARIANT=$(Task1_ENVVAR_VARIANT) &&  \
+					export ENVVAR_SIZE_M=$(Task1_ENVVAR_SIZE_M) &&  \
+					COMPILE_FILE=Ex01/delannoy.c \
+					EXE_FILE=Ex01/delannoy \
+					OPTIMIZATION_LEVEL=$(opt) \
+					$(MAKE) -e --no-print-directory run_Task1; \
 				) \
 			) \
 		) \
@@ -100,15 +95,6 @@ Task1_ENVVAR_SIZE_M:
 		COMPILE_FILE=Ex01/delannoy.c \
 		EXE_FILE=Ex01/delannoy \
 		Task1_ENVVAR_SIZE_M=$(val) \
-		$(MAKE) -e --no-print-directory run_Task1;\
-	)
-
-.PHONY: Task1_ENVVAR_SIZE_N
-Task1_ENVVAR_SIZE_N:
-	$(foreach val,$(Task1_ENVVAR_SIZE_N_VALUES), \
-		COMPILE_FILE=Ex01/delannoy.c \
-		EXE_FILE=Ex01/delannoy \
-		Task1_ENVVAR_SIZE_N=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)
 

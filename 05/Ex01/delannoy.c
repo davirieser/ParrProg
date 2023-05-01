@@ -137,7 +137,14 @@ int main()
 
 	SAVE_STRTOL(env_variant, endPtr, variant);
 	SAVE_STRTOL(env_m, endPtr, m);
-	SAVE_STRTOL(env_n, endPtr, n);
+	if (env_n == NULL)
+	{
+		n = m;
+	}
+	else
+	{
+		SAVE_STRTOL(env_n, endPtr, n);
+	}
 
 	if (m < 0)
 	{
@@ -149,7 +156,6 @@ int main()
 		printf("n was out of range. Value was %ld\n", n);
 		return EXIT_FAILURE;
 	}
-
 
 	long (*delannoyFuncton)(long _n, long _m);
 	switch (variant)
@@ -172,7 +178,7 @@ int main()
 	delannoyFuncton(n, m);
 	double timeTaken = omp_get_wtime() - startTime;
 
-	FILE* file = fopen("Ex01.csv", "a");
+	FILE *file = fopen("Ex01.csv", "a");
 	fprintf(file, "%d;%d;%ld;%ld;%lf\n", variant, omp_get_max_threads(), m, n, timeTaken);
 	fclose(file);
 	// printf("Delannoy(%ld, %ld) = %ld\n", n, m, delannoyFuncton(n, m));

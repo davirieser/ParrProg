@@ -9,8 +9,7 @@ optimization_levels = [ "fast" ]
 	[Task1.Env]
 	OMP_NUM_THREADS = [ 1, 8 ]
 	ENVVAR_VARIANT = [ 0, 1, 2 ]
-	ENVVAR_SIZE_M = [ 12 ]
-	ENVVAR_SIZE_N = [ 12 ]
+	ENVVAR_SIZE_M = [ 3, 4, 5, 7, 9, 11, 13, 15 ]
 
 	[Task1.Flags]
 
