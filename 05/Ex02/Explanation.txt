@@ -1,0 +1,1 @@
+The collaps is used in this case to collaps two for loops. The two loop indices are combined which results in a rewritten loop that act as a single iteration space. With this the parallelisation is able to execute multiple iterations at once and therefore improve performance.

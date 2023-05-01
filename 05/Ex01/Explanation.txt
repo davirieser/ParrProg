@@ -1,0 +1,6 @@
+When executing the algorithm with different size we see an expected growth for the first Variant, the serial variant, growing with O(3^n).
+
+The variant 1, the dynamic one stays constant but gets, as expected, more consistend the higher the size of the array is.
+
+The parallel Version has the problem, that there are far more tasks created than there are threads in total. Therefore the overall runtime is slower but still consistent.
+With this being the main bottleneck we could get the most out of our programm by calculating the maximum number of tasks and add a iff condition depending on how many tasks are active to decide if a new task should be created.
