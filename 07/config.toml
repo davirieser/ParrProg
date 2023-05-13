@@ -1,0 +1,12 @@
+
+[Task1]
+
+src = "Ex01/Vectorizing.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "1" ]
+
+	[Task1.Env]
+	ENVVAR_SIZE = [ 100, 200, 400, 600, 800, 1000, 2000, 4000, 6000, 8000, 10000]
+
+	[Task1.Flags]
