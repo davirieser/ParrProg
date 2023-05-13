@@ -1,0 +1,25 @@
+
+What can you observe? 
+	The Program is 4 Times as fast.
+
+Is the result still correct?
+	Yes (after using the correct Loop Variable Increment).
+
+Perf Findings:
+- 1,000,000,058 PACKED_SINGLE Events
+- 1,000,009,230 Total Events
+	(The Difference is probably due to the setup and Loop Variable Increments).
+
+How does the solution for this Exercise compare to Exercise 2 and Exercise 1? 
+	It is faster because it only runs 1,000,000,000 PACKED_SINGLE Instructions
+	instead of the 1,500,000,000 run by Exercise 1 and Exercise 2.
+
+Are there any advantages or disadvantages?
+	- Advantages:
+		- The Program is faster.
+		- All Instructions could be vectorized.
+	- Disadvantages:
+		- The Code is harder to read because of the Intrinsic Function Calls. 
+		- The Code is longer because the Vectorized Registers cannot be used like normal floats.
+		- The Code is more complex because of the non-unit Loop Variable Increment.
+

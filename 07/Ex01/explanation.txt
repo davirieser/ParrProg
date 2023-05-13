@@ -1,0 +1,44 @@
+
+Flags (see https://gcc.gnu.org/projects/tree-ssa/vectorization.html):
+	"-ftree-vectorize" is needed.
+	According to GCC "-ffast-math" or "-fassociative-math" is needed for Vectorization on Floats
+		=> This did not seem to be the case in our experiments.
+	According to GCC for Intel Platform you also need "-msse2"
+		=> This did not seem to be the case in our experiments.
+	According to GCC for Summation Reduction "-funsafe-math-optimizations" is needed.
+		=> This did not seem to be the case in our experiments.
+		
+Performance:
+	Speedups:
+		- 128 : 
+			- Non Vectorized: 0.07263
+			- Vectorized: 0.02382
+			- Speedup: 3.049
+		- 512 :
+			- Non Vectorized: 0.280413
+			- Vectorized: 0.07437 
+			- Speedup: 3.7705
+		- 2048: 
+			- Non Vectorized: 1.117497 
+			- Vectorized: 0.284728
+			- Speedup: 3.92478
+		- 8192: 
+			- Non Vectorized: 4.447141
+			- Vectorized: 1.1459
+			- Speedup: 3.8809
+
+The Result is still correct.
+	=> but there could be problems if the Array Length is not a multiple of the 
+	   Float Vector Register Length.
+
+Varying the Problem Size did slightly affect the Performance but is probably due to the Loop and Setup Overhead.
+
+Perf Findings (Using Size = 1000, Repetitions = 1e6):
+- Not Vectorized:
+	- 4,000,004,002 SCALAR_SINGLE Events (Store + Load + Add + Mul)
+	- 4,000,009,250 Total Events
+- Vectorized:
+	-   500,000,071 PACKED_SINGLE Events (Add + Mul)
+	- 1,000,002,924 VECTOR Events		 (Store + Load) => One of them is probably not being vectorized)
+	- 1,500,007,010 Total Events
+

@@ -1,0 +1,31 @@
+What can you observe? 
+	Auto-Vectorization and OpenMP are nearly identical in Performance.
+
+Is the result still correct?
+	Yes.
+
+Perf Findings:
+	-   500,000,057 PACKED_SINGLE Events(Add + Mul)
+	- 1,000,002,159 VECTOR Events		(Store + Load) => One of them is probably not being vectorized)
+	- 1,500,009,227 Total Events
+
+double => float Findings:
+	Time (double)	= 1.637 s
+	Time (float)	= 0.865 s
+
+	Optimisation is the same, but since double is twice as big as float, only half as many Values can be calculated using a single vectorized Instruction.
+
+	- Perf:
+		- 1,000,000,000 PACKED_DOUBLE Events (Add + Mul)
+		- 2,000,000,153 VECTOR Events		 (Store + Load) => One of them is probably not being vectorized)
+		- 3,000,007,227 Total Events
+
+How does the solution for this Exercise compare to Exercise 1? 
+	Auto-Vectorization and OpenMP are nearly identical in Performance.
+
+Are there any advantages or disadvantages?
+	- Advantages:
+		- Better because you don't need Compiler Flags and you know which Loops are vectorized.
+	- Disadvantages:
+		- None that we found.
+
