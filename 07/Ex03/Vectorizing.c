@@ -13,7 +13,6 @@
 void multiplyAdd(const float* a, const float* b, const float* c, long size) {
     for (int run = 0; run < REPETITIONS; ++run) {
         for (int i = 0; i < size; i += (INTRINSIC_WIDTH / (sizeof(*a) * BYTE_SIZE))) {
-			printf("%d\n", i);
             // a[i] += b[i] * c[i];
 			__m128 a_v = _mm_load_ps(a + i); 
 			__m128 b_v = _mm_load_ps(b + i); 
