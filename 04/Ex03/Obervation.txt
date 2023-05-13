@@ -1,0 +1,1 @@
+The number of threads does not seem to make a big difference in the execution time when we execute the parallel version. The serial seems to be even faster than the parallel version, even though the exact same algorithm as we discussed in the lecture was used.

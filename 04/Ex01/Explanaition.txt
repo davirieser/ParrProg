@@ -1,0 +1,19 @@
+We have the following values for OMP_PROC_BIND:
+
+    false: No binding (default)
+    true: Bind all threads to a set of hardware resources
+    spread: Spread threads evenly across all available hardware resources
+    close: Bind threads to nearby hardware resources
+    master: Bind only the master thread to a set of hardware resources
+    explicit: Allow the program to explicitly set the binding of threads using OMP_PLACES
+        explicit was not working properly
+
+The possible values for OMP_PLACES are:
+
+    threads: Each thread is assigned its own set of hardware resources (default)
+    cores: Each core is assigned its own set of hardware resources
+    sockets: Each socket is assigned its own set of hardware resources
+    numa: Each NUMA node is assigned its own set of hardware resources
+        numa was not working properly
+
+All except "master" seem to run fast, even equally fast, but master somehow takes 4 times the time.
