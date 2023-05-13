@@ -51,16 +51,19 @@ int main() {
     double timeTaken = omp_get_wtime() - start;
 
     // Verify the result
-    for (int i = 0; i < size; ++i) {
-        if (a[i] != (b[i] * c[i] * REPETITIONS)) {
-            printf("Verification failed at index %d\n", i);
+    int correctResult = 1;
+    for (int i = 0; i < size; ++i)
+    {
+        if (a[i] != (b[i] * c[i] * REPETITIONS))
+        {
+            correctResult = 0;
             break;
         }
     }
 
     // Write execution time to file
-    FILE* file = fopen("Ex01_time.csv", "a");
-    fprintf(file, "%lf\n", timeTaken);
+    FILE* file = fopen("Ex03_time.csv", "a");
+    fprintf(file, "%ld, %lf, %d\n", size, timeTaken, correctResult);
     fclose(file);
 
     free(a);

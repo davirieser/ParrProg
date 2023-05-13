@@ -1,27 +1,55 @@
 
-[Task1]
+[Task1_1]
 
 src = "Ex01/Vectorizing.c"
 
 links = [ "fopenmp" ]
 optimization_levels = [ "1" ]
 
-	[Task1.Env]
-	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+	[Task1_1.Env]
+	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
 	ENVVAR_VECTORIZED = [ 0 ]
 
-	[Task1.Flags]
+	[Task1_1.Flags]
 
-[Task2]
+[Task1_2]
 
 src = "Ex01/Vectorizing.c"
 
 links = [ "fopenmp", "msse2", "ffast-math", "fassociative-math", "ftree-vectorize"]
 optimization_levels = [ "1" ]
 
-	[Task2.Env]
-	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072]
+	[Task1_2.Env]
+	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
 	ENVVAR_VECTORIZED = [ 1 ]
 
+	[Task1_2.Flags]
+
+
+
+[Task2]
+
+src = "Ex02/Vectorizing.c"
+
+links = [ "fopenmp"]
+optimization_levels = [ "1" ]
+
+	[Task2.Env]
+	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
+
 	[Task2.Flags]
+
+
+
+[Task3]
+
+src = "Ex03/Vectorizing.c"
+
+links = [ "fopenmp"]
+optimization_levels = [ "1" ]
+
+	[Task3.Env]
+	ENVVAR_SIZE = [ 128, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
+
+	[Task3.Flags]
 
