@@ -14,7 +14,9 @@ Task1_OPTIMIZATION_LEVEL ?= -O1
 Task1_OPTIMIZATION_LEVELS := -O1
 Task1_COMPILER ?= gcc
 	Task1_ENVVAR_SIZE ?= 100
-	Task1_ENVVAR_SIZE_VALUES = 100 200 400 800 1000 2000 4000 8000 10000 20000 40000 80000 1000000
+	Task1_ENVVAR_SIZE_VALUES = 100 200 400 800 1000 2000 4000 8000 10000 20000 40000 80000 100000
+	Task1_ENVVAR_VECTORIZED ?= 0
+	Task1_ENVVAR_VECTORIZED_VALUES = 0
 Task1_CFLAGS=$(STD_CFLAGS) -std=c11 $(Task1_LINKS)
 
 # ------ Run all Tasks Recipe ----- #
@@ -28,11 +30,14 @@ all: Task1
 Task1:
 	@ $(foreach opt,$(Task1_OPTIMIZATION_LEVELS), \
 		$(foreach Task1_ENVVAR_SIZE, $(Task1_ENVVAR_SIZE_VALUES), \
-			export ENVVAR_SIZE=$(Task1_ENVVAR_SIZE) &&  \
-			COMPILE_FILE=Ex01/Vectorizing.c \
-			EXE_FILE=Ex01/Vectorizing \
-			OPTIMIZATION_LEVEL=$(opt) \
-			$(MAKE) -e --no-print-directory run_Task1; \
+			$(foreach Task1_ENVVAR_VECTORIZED, $(Task1_ENVVAR_VECTORIZED_VALUES), \
+				export ENVVAR_SIZE=$(Task1_ENVVAR_SIZE) &&  \
+				export ENVVAR_VECTORIZED=$(Task1_ENVVAR_VECTORIZED) &&  \
+				COMPILE_FILE=Ex01/Vectorizing.c \
+				EXE_FILE=Ex01/Vectorizing \
+				OPTIMIZATION_LEVEL=$(opt) \
+				$(MAKE) -e --no-print-directory run_Task1; \
+			) \
 		) \
 	)
 
@@ -51,6 +56,15 @@ Task1_ENVVAR_SIZE:
 		COMPILE_FILE=Ex01/Vectorizing.c \
 		EXE_FILE=Ex01/Vectorizing \
 		Task1_ENVVAR_SIZE=$(val) \
+		$(MAKE) -e --no-print-directory run_Task1;\
+	)
+
+.PHONY: Task1_ENVVAR_VECTORIZED
+Task1_ENVVAR_VECTORIZED:
+	$(foreach val,$(Task1_ENVVAR_VECTORIZED_VALUES), \
+		COMPILE_FILE=Ex01/Vectorizing.c \
+		EXE_FILE=Ex01/Vectorizing \
+		Task1_ENVVAR_VECTORIZED=$(val) \
 		$(MAKE) -e --no-print-directory run_Task1;\
 	)
 
