@@ -4,7 +4,7 @@
 STD_CFLAGS= -Wall
 COMPILE_FILE?=
 EXE_FILE?=
-TARGET=LCC
+TARGET=LOCAL
 # ------ Configuration Values for Task1_1 (Ex01/Vectorizing.c) ---------------------------------- #
 
 Task1_1_FILE := Ex01/Vectorizing.c

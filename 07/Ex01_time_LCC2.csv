@@ -1,3 +1,4 @@
+Vectorized, Problem Size, Time in s, Correct solution
 0, 128, 0.162536, 1
 0, 256, 0.316988, 1
 1, 128, 0.107218, 1
