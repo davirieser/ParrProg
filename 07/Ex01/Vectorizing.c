@@ -48,7 +48,7 @@ int main() {
 
     // Write execution time to file
     FILE* file = fopen("Ex01_time.csv", "a");
-    fprintf(file, "%lf\n", timeTaken);
+    fprintf(file, "%ld, %lf\n", size, timeTaken);
     fclose(file);
 
     free(a);
