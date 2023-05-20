@@ -1,0 +1,5 @@
+If we execute the gprof profiler we get a detailed explanation of the times the programm spends in what functions.
+There we can see the time it spends in the function itself and what it spends in functions that get called from it respectively.
+We can also see how many times a function gets called.
+If one wants to improve the performance of a program it would be important to understand where one profit the most from improvements.
+Therefore the analysis.txt provides valuable information on where to start with the improvements.
