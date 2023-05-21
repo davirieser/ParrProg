@@ -40,6 +40,6 @@ run_LOCAL_%: real
 run_LCC_%: real
 	@for _ in $(shell seq 1 $*); do \
 		for threads in $(OMP_THREAD_LIST); do \
-			OMP_NUM_THREADS=$$threads && sbatch ../../job.sh ./$(EXE_FILE); \
+			OMP_NUM_THREADS=$$threads && sbatch ../../../job.sh ./$(EXE_FILE); \
 		done \
 	done

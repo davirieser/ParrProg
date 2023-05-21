@@ -36,5 +36,5 @@ run_LOCAL_%: real
 
 run_LCC_%: real
 	@for _ in $(shell seq 1 $*); do \
-		sbatch ../job.sh ./$(EXE_FILE);
+		sbatch ../../../job.sh $(EXE_FILE); \
 	done
