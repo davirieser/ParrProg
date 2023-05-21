@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
 
 #include "globals.h"
 #include "randdp.h"
@@ -52,6 +53,7 @@ double starts[NM];
 
 int main()
 {
+  double startTime = omp_get_wtime();
   //-------------------------------------------------------------------------c
   // k is the current level. It is passed down through subroutine args
   // and is NOT global. it is the current iteration
@@ -320,6 +322,10 @@ int main()
     }
   }
 
+  double timeTaken = omp_get_wtime() - startTime;
+  FILE* timeFile = fopen("../Ex02.csv", "a");
+  fprintf(timeFile, "Serial, %d, %lf\n", 1, timeTaken);
+  fclose(timeFile);
   return 0;
 }
 
