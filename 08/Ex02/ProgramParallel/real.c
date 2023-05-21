@@ -456,6 +456,7 @@ static void psinv(void *or, void *ou, int n1, int n2, int n3,
   double r1[M], r2[M];
 
   if (timeron) timer_start(T_psinv);
+  #pragma omp parallel for private(i3, i2, i1, r1, r2) default(shared) 
   for (i3 = 1; i3 < n3-1; i3++) {
     for (i2 = 1; i2 < n2-1; i2++) {
       for (i1 = 0; i1 < n1; i1++) {
@@ -596,6 +597,7 @@ static void rprj3(void *or, int m1k, int m2k, int m3k,
     d3 = 1;
   }
 
+#pragma omp parallel for private(j3, j2, j1, i3, i2, i1, x1, y1, x2, y2) default(shared)
   for (j3 = 1; j3 < m3j-1; j3++) {
     i3 = 2*j3-d3;
     for (j2 = 1; j2 < m2j-1; j2++) {
@@ -944,7 +946,7 @@ static void zran3(void *oz, int n1, int n2, int n3, int nx1, int ny1, int k)
     x1 = starts[i3];
     for (i2 = 1; i2 < e2; i2++) {
       xx = x1;
-      vranlc(d1, &xx, a, &(z[i3][i2][1]));
+      vranlc(d1, &xx, a, &(z[i3][i2][1])); 
       rdummy = randlc(&x1, a1);
     }
   }

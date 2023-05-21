@@ -1,0 +1,4 @@
+A big part of the workload in the serial version is taken up by resid function. This function gets called 147 times with a for loop that can be parallelized with omp for.
+The psinv function is similar to the resid function. The for loop in it can also be parallelized with omp for.
+The function vranlc in randdp.c takes up a lot of time, but since the loop it containes depets on the previous results it can't be parallelized with any relevant performance gain.
+Most of the time computation time is taken up by the wtime function. This function cant be parallelized, but since this function only gets used to measure the code this is not really significant.
