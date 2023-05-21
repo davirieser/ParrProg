@@ -1,0 +1,4 @@
+               Variant       mean                                      std                              
+ Num Threads                    1          2        4          8         1         2         4         8
+0             Parallel  19.198366  12.140932  9.94668  11.008511  0.081190  0.579266  0.375866  0.074567
+1               Serial  17.676058        NaN      NaN        NaN  0.074778       NaN       NaN       NaN

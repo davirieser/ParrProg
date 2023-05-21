@@ -2,3 +2,7 @@ A big part of the workload in the serial version is taken up by resid function. 
 The psinv function is similar to the resid function. The for loop in it can also be parallelized with omp for.
 The function vranlc in randdp.c takes up a lot of time, but since the loop it containes depets on the previous results it can't be parallelized with any relevant performance gain.
 Most of the time computation time is taken up by the wtime function. This function cant be parallelized, but since this function only gets used to measure the code this is not really significant.
+
+From the execution time we can observe that the performance of 4 threads is better than the one of 1, 4 and 8 threads.
+This would mean we profit from parallelizm, but it is only a small part that gets parallelized over and over again. This would mean we have sections that get parallelized with many threads in a way where every thread will onyl have a minimal amount of work. But the parallelized section will get executed over and over. This generates a overhead that is more work than if it would get executet with less threads.
+There also seems to be some significant overhead of openmp if it gets executet with just one thread compared to the serial version.
