@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
 //		Loop carried Anti Dependence from x[i+1] to x[i]
 // - If y and x are aliased:
 //		Loop carried Anti Dependence from x[i+1] to x[i] and
-//		Anti Dependence from y[i] to x[i+1]
+//		Anti Dependence from y[i] to x[i]
 //		
 // Parallelization would only make sense if there is a lot of computation done,
 // since this code could be parallelized by copying the x-Array and then
