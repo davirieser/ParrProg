@@ -18,8 +18,9 @@ int main(int argc, char ** argv) {
 //		Loop carried Anti Dependence from x[i+1] to x[i]
 // - If y and x are aliased:
 //		Loop carried Anti Dependence from x[i+1] to x[i] and
-//		Anti Dependence Dependence from y[i] to x[i]
+//		Anti Dependence from y[i] to x[i+1]
 //		
-// I don't think this loop can be parallelized in a good way.
-// It would require copying the x-Array.
-
+// Parallelization would only make sense if there is a lot of computation done,
+// since this code could be parallelized by copying the x-Array and then
+// parallelizing the loop. But this would be a lot of overhead, since the
+// computation is very small.
