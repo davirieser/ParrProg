@@ -34,4 +34,3 @@ Here the easiest way is to just parallelize the inner loop since the Dependence 
 This example is to small to parallelize anyway, using bigger numbers parallelizing the inner loop might be profitable.
 Otherwise one can just split the loop nest into two, one where the safe iterations of "i" are done in parallel and one
 where the unsafe iterations of "i" are executed in series.
-

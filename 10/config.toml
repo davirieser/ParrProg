@@ -1,0 +1,82 @@
+
+[Task2_1]
+
+src = "Ex02/1-original.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_1.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_1.Flags]
+
+
+
+[Task2_2]
+
+src = "Ex02/1-modified.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_2.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_2.Flags]
+
+
+
+[Task2_3]
+
+src = "Ex02/2-original.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_3.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_3.Flags]
+
+
+
+[Task2_4]
+
+src = "Ex02/2-modified.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_4.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_4.Flags]
+
+
+
+[Task2_5]
+
+src = "Ex02/3-original.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_5.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_5.Flags]
+
+
+
+[Task2_6]
+
+src = "Ex02/3-modified.c"
+
+links = [ "fopenmp" ]
+optimization_levels = [ "fast" ]
+
+	[Task2_6.Env]
+	OMP_NUM_THREADS = [ 1, 2, 4, 8, 16, 32 ]
+
+	[Task2_6.Flags]
