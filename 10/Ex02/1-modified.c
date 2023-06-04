@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 
 	double start = omp_get_wtime();
 
-	int n = 10240;
+	int n = 1 << 24;
 	int x[n], y[n];
 
 	memset(x, 0, n);
