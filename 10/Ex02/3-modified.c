@@ -2,13 +2,15 @@
 #include <string.h>
 #include <omp.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {
 	double start = omp_get_wtime();
 
 	int n = 1 << 24;
-	int x[n], y[n];
+	int *x = malloc(n * sizeof(int));
+	int *y = malloc(n * sizeof(int));
 	int twice = 0;
 
 	memset(x, 0, n);
@@ -32,8 +34,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	free(x);
+	free(y);
 	double timeTaken = omp_get_wtime() - start;
 	FILE *file = fopen("Ex02_Time.csv", "a");
-	fprintf(file, "3-modified, %d, %f\n", omp_get_num_threads(), timeTaken);
+	fprintf(file, "3-modified, %d, %f\n", omp_get_max_threads(), timeTaken);
 	fclose(file);
 }
