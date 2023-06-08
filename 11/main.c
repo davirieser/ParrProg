@@ -15,6 +15,10 @@
 #define DEFAULT_GRAV_CONSTANT 6.674e-11
 #endif
 
+#ifndef DEFAULT_THETA
+#define DEFAULT_THETA 0.5
+#endif
+
 #ifndef MAX_X
 #define MAX_X 1000.0
 #endif
@@ -44,6 +48,7 @@ typedef struct {
 
 typedef struct {
 	double grav_constant;
+	double theta;
 	long num_bodies;
 	body_t * bodies;
 } universe_t;
@@ -104,7 +109,7 @@ vector_t acceleration_from_force(vector_t force, double body_mass, double time_s
 	};
 }
 
-double compute_distance(vector_t a, vector_t b) {
+double calculate_distance(vector_t a, vector_t b) {
 	return sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0) + pow(a.z - b.z, 2.0));
 }
 
@@ -132,7 +137,11 @@ typedef struct octree_cell_t {
 	body_t * body;			  // Pointer to the Body in the Cell
 							  // If this is null, the cell is internal
 	struct octree_cell_t * subcells[8];
+	struct octree_cell_t * parent;
 } octree_cell_t;
+typedef octree_cell_t octree_t;
+
+void octree_add(octree_cell_t * root, body_t * body);
 
 octree_cell_state_e get_octree_cell_state(octree_cell_t * cell) {
 	if (cell->body != NULL) return BODY;
@@ -151,8 +160,30 @@ octree_cell_t * create_octree_cell(vector_t position, vector_t size) {
 	};
 	cell->cell_size = size;
 	cell->body = NULL;
+	cell->parent = NULL;
 
 	return cell;
+}
+
+octree_t * create_octree(body_t * bodies, int num_bodies) {
+	octree_t * octree = create_octree_cell(
+		(vector_t) {
+			.x = 0,
+			.y = 0,
+			.z = 0,
+		},
+		(vector_t) {
+			.x = MAX_X,
+			.y = MAX_Y,
+			.z = MAX_Z,
+		}
+	);
+
+	for (int i = 0; i < num_bodies; i ++) {
+		octree_add(octree, &bodies[i]);
+	}
+
+	return octree;
 }
 
 void octree_assign_body(octree_cell_t * cell, body_t * body) {
@@ -189,6 +220,7 @@ void octree_generate_subcells(octree_cell_t * cell) {
 			.z = (i & 1) > 0 ? subcell_size.z : 0.0,
 		};
 		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
+		cell->subcells[i]->parent = cell;
 		printf("Created Subcell at (%lf, %lf, %lf)\n", cell->subcells[i]->position.x, cell->subcells[i]->position.y, cell->subcells[i]->position.z);
 	}
 
@@ -282,6 +314,7 @@ void calculate_velocity(body_t * body, double time_step) {
 
 void calculate_position(body_t * body, double time_step) {
 	body->position = add_vectors(body->position, scale_vector(body->velocity, time_step));
+	// Ensure that the Bodies cannot leave the Area.
 	if (body->position.x <= 0 || body->position.x >= MAX_X) {
 		body->velocity.x = -body->velocity.x;
 		body->position.x += body->velocity.x;
@@ -296,9 +329,51 @@ void calculate_position(body_t * body, double time_step) {
 	}
 }
 
+vector_t calculate_force_between(double grav_constant, vector_t p1, double m1, vector_t p2, double m2) {
+	double distance = calculate_distance(p1, p2);
+	double force = (grav_constant * (m1 * m2)) / pow(distance, 2.0);
+	return (vector_t) {
+		.x = force * ((p1.x - p2.x) / distance),
+		.y = force * ((p1.y - p2.y) / distance),
+		.z = force * ((p1.z - p2.z) / distance),
+	};
+}
+
+void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_constant, double theta) {
+	switch (get_octree_cell_state(cell)) {
+		case INTERNAL: {
+			// TODO: This always calls calculate_distance twice => Reuse
+			double distance = calculate_distance(cell->body->position, body->position);
+			double width = (cell->cell_size.x + cell->cell_size.y + cell->cell_size.z) / 3;
+			if ((width / distance) < theta) {
+				body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->center_position, cell->mass));
+			} else {
+				for (int i = 0; i < 8; i ++) {
+					calculate_force_internal(cell->subcells[i], body, grav_constant, theta);
+				}
+			}
+		}
+		case BODY: {
+			body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->body->position, cell->body->mass));
+			break;
+		}
+		case LEAF:
+			break;
+	}
+}
+
+void calculate_force(octree_cell_t * cell, body_t * body, double grav_constant, double theta) {
+	body->force = (vector_t) {
+		.x = 0.0,
+		.y = 0.0,
+		.z = 0.0,
+	};
+	calculate_force_internal(cell, body, grav_constant, theta);
+}
+
 /* ----- System Definitions ----- */
 
-universe_t init_system(int num_points, double grav_constant) {
+universe_t init_system(int num_points, double theta, double grav_constant) {
 	body_t * bodies = malloc(sizeof(body_t) * num_points);
 
 	for (int i = 0; i < num_points; i ++) {
@@ -312,15 +387,24 @@ universe_t init_system(int num_points, double grav_constant) {
 	
 	return (universe_t) {
 		.bodies = bodies,
+		.theta = theta,
 		.num_bodies = num_points,
 		.grav_constant = grav_constant,
 	};
 }
 
 void simulate_universe(universe_t universe, double delta_time) {
-	body_t * bodies = universe.bodies;
+	octree_t * octree = create_octree(universe.bodies, universe.num_bodies);
+
 	for (int i = 0; i < universe.num_bodies; i ++) {
-		calculate_position(bodies + i, delta_time);
+		calculate_force(octree, universe.bodies + i, universe.grav_constant, universe.theta);
+	}
+
+	free_octree(octree);
+
+	for (int i = 0; i < universe.num_bodies; i ++) {
+		calculate_velocity(universe.bodies + i, delta_time);
+		calculate_position(universe.bodies + i, delta_time);
 	}
 }
 
@@ -385,11 +469,10 @@ void generate_gnuplot_file(double time_step, char * file_name) {
 /* ----- Main Function ----- */
 
 int main(int argc, char ** argv) {
-	srand(time(NULL));
-
+	printf("%d", argc);
 	// Parse Command Line Arguments
-	if (argc != 4 && argc != 5) {
-		printf("Usage: <%s> <Number of Bodies> <Time Step> <Maximum Time> [Gravitational Constant]\n", argv[0]);
+	if ((argc >= 4) && (argc <= 6)) {
+		printf("Usage: <%s> <Number of Bodies> <Time Step> <Maximum Time> [Theta] [Gravitational Constant]\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 
@@ -412,11 +495,22 @@ int main(int argc, char ** argv) {
 		return EXIT_FAILURE;
 	}
 
-	double grav_constant; 
+	double theta; 
 	if (argc >= 5) {
-		grav_constant = strtod(argv[4], &p);
+		theta = strtod(argv[4], &p);
 		if (*p != '\0') {
-			printf("Could not convert Maximum Time: \"%s\"\n", argv[4]);
+			printf("Could not convert Theta: \"%s\"\n", argv[4]);
+			return EXIT_FAILURE;
+		}
+	} else {
+		theta = DEFAULT_THETA;
+	}
+
+	double grav_constant; 
+	if (argc >= 6) {
+		grav_constant = strtod(argv[5], &p);
+		if (*p != '\0') {
+			printf("Could not convert Gravitational Constant: \"%s\"\n", argv[5]);
 			return EXIT_FAILURE;
 		}
 	} else {
@@ -438,7 +532,7 @@ int main(int argc, char ** argv) {
 	}
 
 	// Generate Universe 
-	universe_t universe = init_system(num_bodies, grav_constant);
+	universe_t universe = init_system(num_bodies, theta, grav_constant);
 	printf(
 		"Simulating Universe with \n\t- %d Bodies\n\t- Gravitational Constant = %lf\n\t- From 0 to %lf using Time Step %lf\n", 
 		num_bodies, 
