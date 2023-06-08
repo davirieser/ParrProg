@@ -282,6 +282,18 @@ void calculate_velocity(body_t * body, double time_step) {
 
 void calculate_position(body_t * body, double time_step) {
 	body->position = add_vectors(body->position, scale_vector(body->velocity, time_step));
+	if (body->position.x <= 0 || body->position.x >= MAX_X) {
+		body->velocity.x = -body->velocity.x;
+		body->position.x += body->velocity.x;
+	}
+	if (body->position.y <= 0 || body->position.y >= MAX_Y) {
+		body->velocity.y = -body->velocity.y;
+		body->position.y += body->velocity.y;
+	}
+	if (body->position.z <= 0 || body->position.z >= MAX_Z) {
+		body->velocity.z = -body->velocity.z;
+		body->position.z += body->velocity.z;
+	}
 }
 
 /* ----- System Definitions ----- */
@@ -341,7 +353,7 @@ void plot_system(char * file_name, universe_t universe, bool truncate) {
 
 #define GNU_PLOT_FILE "particle.plt"
 
-#define GNU_PLOT_HEADER "set terminal gif animate delay 100 # set gif to animate in a frame delay of 100 ms\n\
+#define GNU_PLOT_HEADER "set terminal gif animate delay 10 # set gif to animate in a frame delay of 10 ms\n\
 set output 'output.gif' # write to the file output.gif\n\
 \n\
 set style line 2 lc rgb 'black' pt 7 # set line to be a filled circle of color black\n\
