@@ -54,7 +54,7 @@ typedef struct {
  * Generate random number between 0 and max.
  */
 double rand_positive_double(double max){
-   return max * (rand() / ((double)RAND_MAX + 1));
+   	return max * (rand() / ((double)RAND_MAX + 1));
 }
 
 /*
@@ -163,12 +163,17 @@ void octree_assign_body(octree_cell_t * cell, body_t * body) {
 
 int octree_locate_subcell(octree_cell_t * cell, body_t * body) {
 	vector_t bpos = body->position;
-	vector_t cell_center = scale_vector(add_vectors(cell->position, cell->cell_size), 0.5);
+	vector_t cell_center = add_vectors(cell->position, scale_vector(cell->cell_size, 0.5));
 
-	return 
-		((bpos.x > cell_center.x) << 2) + 
-		((bpos.y > cell_center.y) << 1) + 
-		  bpos.z > cell_center.z;
+	int x = bpos.x > cell_center.x ? 1 : 0;
+	int y = bpos.y > cell_center.y ? 1 : 0;
+	int z = bpos.z > cell_center.z ? 1 : 0;
+
+	int subcell = (x << 2) + (y << 1) + z;
+
+	printf("Subcell (%lf, %lf, %lf) (%lf, %lf, %lf): %d\n", bpos.x, bpos.y, bpos.z, cell_center.x, cell_center.y, cell_center.z, subcell);
+
+	return subcell;
 }
 
 /*
@@ -184,6 +189,7 @@ void octree_generate_subcells(octree_cell_t * cell) {
 			.z = (i & 1) > 0 ? subcell_size.z : 0.0,
 		};
 		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
+		printf("Created Subcell at (%lf, %lf, %lf)\n", cell->subcells[i]->position.x, cell->subcells[i]->position.y, cell->subcells[i]->position.z);
 	}
 
 	// Move the current Cell's Body into the appropriate Subcell.
@@ -200,7 +206,10 @@ void octree_add(octree_cell_t * root, body_t * body) {
 	while (run) {
 		switch (get_octree_cell_state(cell)) {
 			case BODY:
+				printf("Generating Subcells %p (%lf, %lf, %lf)\n", (void*) cell, cell->position.x, cell->position.y, cell->position.z);
 				octree_generate_subcells(cell);
+				cell = cell->subcells[octree_locate_subcell(cell, body)];
+				break;
 			case INTERNAL: {
 				double bmass = body->mass, cmass = cell->mass, total_mass = cmass + bmass;
 				vector_t bpos = body->position, cpos = cell->center_position;
@@ -285,7 +294,7 @@ universe_t init_system(int num_points, double grav_constant) {
 			.position = generate_random_position(),
 			.velocity = generate_random_velocity(),
 			.force = (vector_t) { .x = 0.0, .y = 0.0, .z = 0.0 },
-			.mass = rand(),
+			.mass = rand_positive_double(100),
 		};
 	}
 	
@@ -426,19 +435,6 @@ int main(int argc, char ** argv) {
 		time_step
 	);
 
-	octree_cell_t * cell = create_octree_cell(
-		(vector_t) { .x = 0.0, .y = 0.0, .z = 0.0 },
-		(vector_t) { .x = MAX_X, .y = MAX_Y, .z = MAX_Z }
-	);
-
-	for (int i = 0; i < 3; i ++) {
-		vector_t position = universe.bodies[i].position;
-		printf("Adding Body at (%lf, %lf, %lf) to Octree\n", position.x, position.y, position.z);
-		octree_add(cell, &universe.bodies[i]);
-	}
-	print_octree(cell, 0);
-
-	/*
 	plot_system("data.dat", universe, 1);
 	// Simulate Universe
 	double t = 0;
@@ -449,12 +445,9 @@ int main(int argc, char ** argv) {
 	}
 
 	generate_gnuplot_file(time_step, "data.dat");
-	*/
 
 	cleanup_system(universe);
 
-	free_octree(cell);
-	
 	return EXIT_SUCCESS;
 }
 
