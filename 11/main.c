@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
 	vector_t position;
 	vector_t velocity;
-	vector_t acceleration;
+	vector_t force;
 	double mass;
 } body_t;
 
@@ -79,6 +79,160 @@ vector_t generate_random_velocity() {
 	}; 
 }
 
+vector_t add_vectors(vector_t a, vector_t b) {
+	return (vector_t) {
+		.x = a.x + b.x,
+		.y = a.y + b.y,
+		.z = a.z + b.z,
+	};
+}
+
+vector_t scale_vector(vector_t a, double scalar) {
+	return (vector_t) {
+		.x = a.x * scalar,
+		.y = a.y * scalar,
+		.z = a.z * scalar,
+	};
+}
+
+vector_t acceleration_from_force(vector_t force, double body_mass, double time_step) {
+	return (vector_t) {
+		.x = (force.x / body_mass) * time_step,
+		.y = (force.y / body_mass) * time_step,
+		.z = (force.z / body_mass) * time_step,
+	};
+}
+
+double compute_distance(vector_t a, vector_t b) {
+	return sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0) + pow(a.z - b.z, 2.0));
+}
+
+/* ----- Octree ----- */
+
+typedef enum {
+	INTERNAL,
+	BODY,
+	LEAF,
+} octree_cell_state_e;
+
+/*
+ * A Cell has three possible "states" that it can have:
+ * - It is an internal Cell that has 8 Subcells.
+ * - It is a Body Cell that has a Body and no Subcells.
+ * - It is a Leaf Cell with neither a Body nor Subcells.
+ *   This "state" is signified by a mass smaller 0.
+ */
+typedef struct octree_cell_t {
+	double mass;			  // Combined Mass of the Bodies in this Cell
+							  // If the Mass is smaller 0 this is a Leaf.
+	vector_t position;		  // Absolute Position of the Cell.
+	vector_t center_position; // Center of Mass of the Bodies in this Cell
+	vector_t cell_size;		  // Size of the Cell
+	body_t * body;			  // Pointer to the Body in the Cell
+							  // If this is null, the cell is internal
+	struct octree_cell_t * subcells[8];
+} octree_cell_t;
+
+octree_cell_state_e get_octree_cell_state(octree_cell_t * cell) {
+	if (cell->body != NULL) return BODY;
+	return cell->mass >= 0 ? INTERNAL : LEAF;
+}
+
+octree_cell_t * create_octree_cell(vector_t size) {
+	octree_cell_t * cell = malloc(sizeof(octree_cell_t));
+
+	cell->mass = -1;
+	cell->center_position = (vector_t) {
+		.x = 0.0,
+		.y = 0.0,
+		.z = 0.0,
+	};
+	cell->cell_size = size;
+	cell->body = NULL;
+
+	return cell;
+}
+
+void octree_assign_body(octree_cell_t * cell, body_t * body) {
+	cell->body = body;
+	cell->center_position = body->position;
+	cell->mass = body->mass;
+}
+
+int octree_locate_subcell(octree_cell_t * cell, body_t * body) {
+	vector_t bpos = body->position;
+	vector_t cpos = cell->position;
+
+	return 
+		((bpos.x > cpos.x) << 2) + 
+		((bpos.y > cpos.y) << 1) + 
+		  bpos.z > cpos.z;
+}
+
+/*
+ * Convert the given Cell from a Body to an internal Cell.
+ */
+void octree_generate_subcells(octree_cell_t * cell) {
+	vector_t subcell_size = scale_vector(cell->cell_size, 0.5);
+
+	for (int i = 0; i < 8; i ++) {
+		cell->subcells[i] = create_octree_cell(subcell_size);
+		vector_t offset = (vector_t) {
+			.x = (i & 4) > 0 ? subcell_size.x : 0.0,
+			.y = (i & 2) > 0 ? subcell_size.y : 0.0,
+			.z = (i & 1) > 0 ? subcell_size.z : 0.0,
+		};
+		cell->subcells[i]->position = add_vectors(cell->position, offset);
+	}
+
+	// Move the current Cell's Body into the appropriate Subcell.
+	octree_cell_t * new_cell = cell->subcells[octree_locate_subcell(cell, cell->body)];
+	octree_assign_body(new_cell, cell->body);
+	cell->body = NULL;
+}
+
+void octree_add(octree_cell_t * root, body_t * body) {
+	bool run = true;
+	octree_cell_t * cell = root;
+
+	while (run) {
+		switch (get_octree_cell_state(cell)) {
+			case BODY:
+				octree_generate_subcells(cell);
+			case INTERNAL:
+				cell = cell->subcells[octree_locate_subcell(cell, body)];
+				break;
+			case LEAF:
+				cell->body = body;
+				run = false;
+				break;
+		}
+	}
+}
+
+void free_octree(octree_cell_t * root) {
+	if (get_octree_cell_state(root) == INTERNAL) {
+		for (int i = 0; i < 8; i++) {
+			free_octree(root->subcells[i]);
+		}
+	}
+
+	free(root);
+}
+
+/* ----- Body Update Functions ----- */
+
+void calculate_velocity(body_t * body, double time_step) {
+	vector_t acc = acceleration_from_force(body->force, body->mass, time_step);
+
+	body->velocity = add_vectors(body->velocity, scale_vector(acc, time_step));
+}
+
+void calculate_position(body_t * body, double time_step) {
+	// TODO: Test if Body moved out of acceptable Area?
+	body->position = add_vectors(body->position, scale_vector(body->velocity, time_step));
+}
+
 /* ----- System Definitions ----- */
 
 universe_t init_system(int num_points, double grav_constant) {
@@ -88,7 +242,7 @@ universe_t init_system(int num_points, double grav_constant) {
 		bodies[i] = (body_t) {
 			.position = generate_random_position(),
 			.velocity = generate_random_velocity(),
-			.acceleration = (vector_t) { .x = 0.0, .y = 0.0, .z = 0.0 },
+			.force = (vector_t) { .x = 0.0, .y = 0.0, .z = 0.0 },
 			.mass = rand(),
 		};
 	}
@@ -101,7 +255,10 @@ universe_t init_system(int num_points, double grav_constant) {
 }
 
 void simulate_universe(universe_t universe, double delta_time) {
-	// TODO
+	body_t * bodies = universe.bodies;
+	for (int i = 0; i < universe.num_bodies; i ++) {
+		calculate_position(bodies + i, delta_time);
+	}
 }
 
 void cleanup_system(universe_t universe) {
@@ -111,6 +268,7 @@ void cleanup_system(universe_t universe) {
 void plot_system(char * file_name, universe_t universe, bool truncate) {
 	mode_t mode = O_CREAT | O_WRONLY;
 	if (truncate) mode |= O_TRUNC;
+	else mode |= O_APPEND;
 
 	int file = open(file_name, mode, 0644);
 	if (file == -1) return;
@@ -124,7 +282,7 @@ void plot_system(char * file_name, universe_t universe, bool truncate) {
 			free(buf);
 		}
 	}
-	write(file, "\n", 1);
+	write(file, "\n\n", 2);
 	close(file);
 }
 
@@ -229,6 +387,7 @@ int main(int argc, char ** argv) {
 	double t = 0;
 	while (t < max_time) {
 		simulate_universe(universe, time_step);
+		plot_system("data.dat", universe, 0);
 		t += time_step;
 	}
 
