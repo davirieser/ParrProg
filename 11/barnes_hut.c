@@ -226,6 +226,7 @@ void octree_generate_subcells(octree_cell_t * cell) {
 		};
 		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
 		cell->subcells[i]->parent = cell;
+
 #ifdef DEBUG_OCTREE
 		printf("Created Subcell at (%lf, %lf, %lf)\n", cell->subcells[i]->position.x, cell->subcells[i]->position.y, cell->subcells[i]->position.z);
 #endif
@@ -352,10 +353,8 @@ void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_c
 			double distance = calculate_distance(cell->center_position, body->position);
 			double width = (cell->cell_size.x + cell->cell_size.y + cell->cell_size.z) / 3;
 			if ((width / distance) < theta) {
-				printf("Approximating\n");
 				body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->center_position, cell->mass));
 			} else {
-				printf("Checking Subcells\n");
 				for (int i = 0; i < 8; i ++) {
 					calculate_force_internal(cell->subcells[i], body, grav_constant, theta);
 				}
@@ -404,7 +403,6 @@ universe_t init_system(int num_points, double theta, double grav_constant) {
 
 void simulate_universe(universe_t universe, double delta_time) {
 	octree_t * octree = create_octree(universe.bodies, universe.num_bodies);
-	print_octree(octree, 0);
 
 	for (int i = 0; i < universe.num_bodies; i ++) {
 		calculate_force(octree, universe.bodies + i, universe.grav_constant, universe.theta);
