@@ -202,7 +202,9 @@ int octree_locate_subcell(octree_cell_t * cell, body_t * body) {
 
 	int subcell = (x << 2) + (y << 1) + z;
 
+#ifdef DEBUG_OCTREE
 	printf("Subcell (%lf, %lf, %lf) (%lf, %lf, %lf): %d\n", bpos.x, bpos.y, bpos.z, cell_center.x, cell_center.y, cell_center.z, subcell);
+#endif
 
 	return subcell;
 }
@@ -221,7 +223,9 @@ void octree_generate_subcells(octree_cell_t * cell) {
 		};
 		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
 		cell->subcells[i]->parent = cell;
+#ifdef DEBUG_OCTREE
 		printf("Created Subcell at (%lf, %lf, %lf)\n", cell->subcells[i]->position.x, cell->subcells[i]->position.y, cell->subcells[i]->position.z);
+#endif
 	}
 
 	// Move the current Cell's Body into the appropriate Subcell.
@@ -238,7 +242,9 @@ void octree_add(octree_cell_t * root, body_t * body) {
 	while (run) {
 		switch (get_octree_cell_state(cell)) {
 			case BODY:
+#ifdef DEBUG_OCTREE
 				printf("Generating Subcells %p (%lf, %lf, %lf)\n", (void*) cell, cell->position.x, cell->position.y, cell->position.z);
+#endif
 				octree_generate_subcells(cell);
 				cell = cell->subcells[octree_locate_subcell(cell, body)];
 				break;
@@ -399,7 +405,7 @@ void simulate_universe(universe_t universe, double delta_time) {
 	for (int i = 0; i < universe.num_bodies; i ++) {
 		calculate_force(octree, universe.bodies + i, universe.grav_constant, universe.theta);
 	}
-
+	
 	free_octree(octree);
 
 	for (int i = 0; i < universe.num_bodies; i ++) {
@@ -469,12 +475,13 @@ void generate_gnuplot_file(double time_step, char * file_name) {
 /* ----- Main Function ----- */
 
 int main(int argc, char ** argv) {
-	printf("%d", argc);
 	// Parse Command Line Arguments
-	if ((argc >= 4) && (argc <= 6)) {
+	if ((argc < 4) || (argc > 6)) {
 		printf("Usage: <%s> <Number of Bodies> <Time Step> <Maximum Time> [Theta] [Gravitational Constant]\n", argv[0]);
 		return EXIT_FAILURE;
 	}
+
+	srand(time(NULL));
 
 	char * p;
 	int num_bodies = strtol(argv[1], &p, 10);
