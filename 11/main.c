@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
+#include <time.h>
 
 /* ----- Constant Definitions ----- */
 
@@ -162,12 +163,12 @@ void octree_assign_body(octree_cell_t * cell, body_t * body) {
 
 int octree_locate_subcell(octree_cell_t * cell, body_t * body) {
 	vector_t bpos = body->position;
-	vector_t cpos = cell->position;
+	vector_t cell_center = scale_vector(add_vectors(cell->position, cell->cell_size), 0.5);
 
 	return 
-		((bpos.x > cpos.x) << 2) + 
-		((bpos.y > cpos.y) << 1) + 
-		  bpos.z > cpos.z;
+		((bpos.x > cell_center.x) << 2) + 
+		((bpos.y > cell_center.y) << 1) + 
+		  bpos.z > cell_center.z;
 }
 
 /*
@@ -213,7 +214,7 @@ void octree_add(octree_cell_t * root, body_t * body) {
 				break;
 			}
 			case LEAF:
-				cell->body = body;
+				octree_assign_body(cell, body);
 				run = false;
 				break;
 		}
@@ -234,6 +235,7 @@ void print_octree(octree_cell_t * root, int indent_level) {
 			for (int i = 0; i < 8; i++) {
 				print_octree(root->subcells[i], indent_level+1);
 			}
+			break;
 		case BODY:
 			printf("Body at (%lf, %lf, %lf) with Velocity (%lf, %lf, %lf) with Mass %lf\n",
 				root->body->position.x,
@@ -244,6 +246,7 @@ void print_octree(octree_cell_t * root, int indent_level) {
 				root->body->velocity.z,
 				root->body->mass
 			);
+			break;
 		case LEAF:
 			printf("Leaf\n");
 			break;
@@ -269,7 +272,6 @@ void calculate_velocity(body_t * body, double time_step) {
 }
 
 void calculate_position(body_t * body, double time_step) {
-	// TODO: Test if Body moved out of acceptable Area?
 	body->position = add_vectors(body->position, scale_vector(body->velocity, time_step));
 }
 
@@ -362,6 +364,8 @@ void generate_gnuplot_file(double time_step, char * file_name) {
 /* ----- Main Function ----- */
 
 int main(int argc, char ** argv) {
+	srand(time(NULL));
+
 	// Parse Command Line Arguments
 	if (argc != 4 && argc != 5) {
 		printf("Usage: <%s> <Number of Bodies> <Time Step> <Maximum Time> [Gravitational Constant]\n", argv[0]);
@@ -422,6 +426,19 @@ int main(int argc, char ** argv) {
 		time_step
 	);
 
+	octree_cell_t * cell = create_octree_cell(
+		(vector_t) { .x = 0.0, .y = 0.0, .z = 0.0 },
+		(vector_t) { .x = MAX_X, .y = MAX_Y, .z = MAX_Z }
+	);
+
+	for (int i = 0; i < 3; i ++) {
+		vector_t position = universe.bodies[i].position;
+		printf("Adding Body at (%lf, %lf, %lf) to Octree\n", position.x, position.y, position.z);
+		octree_add(cell, &universe.bodies[i]);
+	}
+	print_octree(cell, 0);
+
+	/*
 	plot_system("data.dat", universe, 1);
 	// Simulate Universe
 	double t = 0;
@@ -431,9 +448,12 @@ int main(int argc, char ** argv) {
 		t += time_step;
 	}
 
+	generate_gnuplot_file(time_step, "data.dat");
+	*/
+
 	cleanup_system(universe);
 
-	generate_gnuplot_file(time_step, "data.dat");
+	free_octree(cell);
 	
 	return EXIT_SUCCESS;
 }
