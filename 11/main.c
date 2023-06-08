@@ -138,9 +138,10 @@ octree_cell_state_e get_octree_cell_state(octree_cell_t * cell) {
 	return cell->mass >= 0 ? INTERNAL : LEAF;
 }
 
-octree_cell_t * create_octree_cell(vector_t size) {
+octree_cell_t * create_octree_cell(vector_t position, vector_t size) {
 	octree_cell_t * cell = malloc(sizeof(octree_cell_t));
 
+	cell->position = position;
 	cell->mass = -1;
 	cell->center_position = (vector_t) {
 		.x = 0.0,
@@ -176,16 +177,16 @@ void octree_generate_subcells(octree_cell_t * cell) {
 	vector_t subcell_size = scale_vector(cell->cell_size, 0.5);
 
 	for (int i = 0; i < 8; i ++) {
-		cell->subcells[i] = create_octree_cell(subcell_size);
 		vector_t offset = (vector_t) {
 			.x = (i & 4) > 0 ? subcell_size.x : 0.0,
 			.y = (i & 2) > 0 ? subcell_size.y : 0.0,
 			.z = (i & 1) > 0 ? subcell_size.z : 0.0,
 		};
-		cell->subcells[i]->position = add_vectors(cell->position, offset);
+		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
 	}
 
 	// Move the current Cell's Body into the appropriate Subcell.
+	// Mass and Center of Mass do not need to be adjusted because the Bodies didn't change.
 	octree_cell_t * new_cell = cell->subcells[octree_locate_subcell(cell, cell->body)];
 	octree_assign_body(new_cell, cell->body);
 	cell->body = NULL;
@@ -199,14 +200,53 @@ void octree_add(octree_cell_t * root, body_t * body) {
 		switch (get_octree_cell_state(cell)) {
 			case BODY:
 				octree_generate_subcells(cell);
-			case INTERNAL:
+			case INTERNAL: {
+				double bmass = body->mass, cmass = cell->mass, total_mass = cmass + bmass;
+				vector_t bpos = body->position, cpos = cell->center_position;
+				cell->center_position = (vector_t) {
+					.x = (bpos.x * bmass + cpos.x * cmass) / total_mass,
+					.y = (bpos.y * bmass + cpos.y * cmass) / total_mass,
+					.z = (bpos.z * bmass + cpos.z * cmass) / total_mass,
+				};
+				cell->mass = total_mass;
 				cell = cell->subcells[octree_locate_subcell(cell, body)];
 				break;
+			}
 			case LEAF:
 				cell->body = body;
 				run = false;
 				break;
 		}
+	}
+}
+
+void print_octree(octree_cell_t * root, int indent_level) {
+	printf("%*s", 2 * indent_level, "");
+
+	switch (get_octree_cell_state(root)) {
+		case INTERNAL:
+			printf("Internal with Mass %lf at (%lf, %lf, %lf)\n", 
+				root->mass, 
+				root->center_position.x,
+				root->center_position.y,
+				root->center_position.z
+			);
+			for (int i = 0; i < 8; i++) {
+				print_octree(root->subcells[i], indent_level+1);
+			}
+		case BODY:
+			printf("Body at (%lf, %lf, %lf) with Velocity (%lf, %lf, %lf) with Mass %lf\n",
+				root->body->position.x,
+				root->body->position.y,
+				root->body->position.z,
+				root->body->velocity.x,
+				root->body->velocity.y,
+				root->body->velocity.z,
+				root->body->mass
+			);
+		case LEAF:
+			printf("Leaf\n");
+			break;
 	}
 }
 
