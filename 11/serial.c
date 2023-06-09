@@ -33,8 +33,11 @@
 #define MAX_INIT_VELOCITY 10
 #endif
 
-// #define DEBUG_OCTREE
-#define OUTPUT_PLOT
+#define DEBUG_OCTREE 0
+
+#ifndef OUTPUT_PLOT
+#define OUTPUT_PLOT 1
+#endif
 
 /* ----- Type Definitions ----- */
 
@@ -205,7 +208,7 @@ int octree_locate_subcell(octree_cell_t * cell, body_t * body) {
 
 	int subcell = (x << 2) + (y << 1) + z;
 
-#ifdef DEBUG_OCTREE
+#if DEBUG_OCTREE
 	printf("Subcell (%lf, %lf, %lf) (%lf, %lf, %lf): %d\n", bpos.x, bpos.y, bpos.z, cell_center.x, cell_center.y, cell_center.z, subcell);
 #endif
 
@@ -227,7 +230,7 @@ void octree_generate_subcells(octree_cell_t * cell) {
 		cell->subcells[i] = create_octree_cell(add_vectors(cell->position, offset), subcell_size);
 		cell->subcells[i]->parent = cell;
 
-#ifdef DEBUG_OCTREE
+#if DEBUG_OCTREE
 		printf("Created Subcell at (%lf, %lf, %lf)\n", cell->subcells[i]->position.x, cell->subcells[i]->position.y, cell->subcells[i]->position.z);
 #endif
 	}
@@ -246,7 +249,7 @@ void octree_add(octree_cell_t * root, body_t * body) {
 	while (run) {
 		switch (get_octree_cell_state(cell)) {
 			case BODY:
-#ifdef DEBUG_OCTREE
+#if DEBUG_OCTREE
 				printf("Generating Subcells %p (%lf, %lf, %lf)\n", (void*) cell, cell->position.x, cell->position.y, cell->position.z);
 #endif
 				octree_generate_subcells(cell);
@@ -325,15 +328,15 @@ void calculate_position(body_t * body, double time_step) {
 	// Ensure that the Bodies cannot leave the Area.
 	if (body->position.x <= 0 || body->position.x >= MAX_X) {
 		body->velocity.x = -body->velocity.x;
-		body->position.x += body->velocity.x;
+		body->position.x += 2 * body->velocity.x;
 	}
 	if (body->position.y <= 0 || body->position.y >= MAX_Y) {
 		body->velocity.y = -body->velocity.y;
-		body->position.y += body->velocity.y;
+		body->position.y += 2 * body->velocity.y;
 	}
 	if (body->position.z <= 0 || body->position.z >= MAX_Z) {
 		body->velocity.z = -body->velocity.z;
-		body->position.z += body->velocity.z;
+		body->position.z += 2 * body->velocity.z;
 	}
 }
 
@@ -423,7 +426,7 @@ void cleanup_system(universe_t universe) {
 }
 
 void plot_system(char * file_name, universe_t universe, bool truncate) {
-#ifdef OUTPUT_PLOT
+#if OUTPUT_PLOT
 	mode_t mode = O_CREAT | O_WRONLY;
 	if (truncate) mode |= O_TRUNC;
 	else mode |= O_APPEND;
