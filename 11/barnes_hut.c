@@ -362,7 +362,9 @@ void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_c
 			break;
 		}
 		case BODY: {
-			body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->body->position, cell->body->mass));
+			if (body != cell->body) {
+				body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->body->position, cell->body->mass));
+			}
 			break;
 		}
 		case LEAF:
