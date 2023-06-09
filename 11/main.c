@@ -358,6 +358,7 @@ void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_c
 			if ((width / distance) < theta) {
 				body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->center_position, cell->mass));
 			} else {
+#pragma omp task
 				for (int i = 0; i < 8; i ++) {
 					calculate_force_internal(cell->subcells[i], body, grav_constant, theta);
 				}
@@ -381,7 +382,11 @@ void calculate_force(octree_cell_t * cell, body_t * body, double grav_constant, 
 		.y = 0.0,
 		.z = 0.0,
 	};
+#pragma omp parallel
+{
+#pragma omp single
 	calculate_force_internal(cell, body, grav_constant, theta);
+}
 }
 
 /* ----- System Definitions ----- */
@@ -415,6 +420,7 @@ void simulate_universe(universe_t universe, double delta_time) {
 	
 	free_octree(octree);
 
+#pragma omp parallel for
 	for (int i = 0; i < universe.num_bodies; i ++) {
 		calculate_velocity(universe.bodies + i, delta_time);
 		calculate_position(universe.bodies + i, delta_time);

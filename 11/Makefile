@@ -6,7 +6,13 @@ ARGS=$(NUM_BODIES) $(TIME_STEP) $(MAX_TIME)
 
 OUTPUT_PLOT ?= 1
 
-FLAGS=-lm -Wall -Werror -Wpedantic
+PARALLEL ?= 1
+
+ifeq "$(PARALLEL)" "1"
+FLAGS=-lm -Wall -Wpedantic -fopenmp
+else
+FLAGS=-lm -Wall -Wpedantic
+endif
 
 %: %.c
 	$(CC) $^ -o $@ $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
