@@ -15,7 +15,7 @@ FLAGS=-lm -Wall -Wpedantic
 endif
 
 %: %.c
-	$(CC) $^ -o $@ $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
+	@ $(CC) $^ -o $@ $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
 	@ echo "Running $@ $(ARGS)"
 	@ ./$@ $(ARGS)
 ifneq "$(OUTPUT_PLOT)" "0"
