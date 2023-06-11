@@ -39,22 +39,24 @@
 #define OUTPUT_PLOT 1
 #endif
 
+typedef float number;
+
 /* ----- Type Definitions ----- */
 
 typedef struct {
-	double x, y, z;
+	number x, y, z;
 } vector_t;
 
 typedef struct {
 	vector_t position;
 	vector_t velocity;
 	vector_t force;
-	double mass;
+	number mass;
 } body_t;
 
 typedef struct {
-	double grav_constant;
-	double theta;
+	number grav_constant;
+	number theta;
 	long num_bodies;
 	body_t * bodies;
 } universe_t;
@@ -64,15 +66,15 @@ typedef struct {
 /*
  * Generate random number between 0 and max.
  */
-double rand_positive_double(double max){
-   	return max * (rand() / ((double)RAND_MAX + 1));
+number rand_positive_double(number max){
+   	return max * (rand() / ((number )RAND_MAX + 1));
 }
 
 /*
  * Generate random number between -(max/2) and max/2.
  */
-double rand_double(double max){
-	return max * ((rand() / ((double)RAND_MAX + 1)) - 0.5);
+double rand_double(number max){
+	return max * ((rand() / ((number)RAND_MAX + 1)) - 0.5);
 }
 
 vector_t generate_random_position() {
@@ -99,7 +101,7 @@ vector_t add_vectors(vector_t a, vector_t b) {
 	};
 }
 
-vector_t scale_vector(vector_t a, double scalar) {
+vector_t scale_vector(vector_t a, number scalar) {
 	return (vector_t) {
 		.x = a.x * scalar,
 		.y = a.y * scalar,
@@ -107,7 +109,7 @@ vector_t scale_vector(vector_t a, double scalar) {
 	};
 }
 
-vector_t acceleration_from_force(vector_t force, double body_mass, double time_step) {
+vector_t acceleration_from_force(vector_t force, number body_mass, number time_step) {
 	return (vector_t) {
 		.x = (force.x / body_mass) * time_step,
 		.y = (force.y / body_mass) * time_step,
@@ -115,7 +117,7 @@ vector_t acceleration_from_force(vector_t force, double body_mass, double time_s
 	};
 }
 
-double calculate_distance(vector_t a, vector_t b) {
+number calculate_distance(vector_t a, vector_t b) {
 	return sqrt(pow(a.x - b.x, 2.0) + pow(a.y - b.y, 2.0) + pow(a.z - b.z, 2.0));
 }
 
@@ -254,7 +256,7 @@ void octree_add(octree_cell_t * root, body_t * body) {
 #endif
 				octree_generate_subcells(cell);
 			case INTERNAL: {
-				double bmass = body->mass, cmass = cell->mass, total_mass = cmass + bmass;
+				number bmass = body->mass, cmass = cell->mass, total_mass = cmass + bmass;
 				vector_t bpos = body->position, cpos = cell->center_position;
 				cell->center_position = (vector_t) {
 					.x = (bpos.x * bmass + cpos.x * cmass) / total_mass,
@@ -317,7 +319,7 @@ void free_octree(octree_cell_t * root) {
 
 /* ----- Body Update Functions ----- */
 
-void calculate_velocity(body_t * body, double time_step) {
+void calculate_velocity(body_t * body, number time_step) {
 	vector_t acc = acceleration_from_force(body->force, body->mass, time_step);
 
 	body->velocity = add_vectors(body->velocity, scale_vector(acc, time_step));
@@ -341,8 +343,8 @@ void calculate_position(body_t * body, double time_step) {
 }
 
 vector_t calculate_force_between(double grav_constant, vector_t p1, double m1, vector_t p2, double m2) {
-	double distance = calculate_distance(p1, p2);
-	double force = (grav_constant * (m1 * m2)) / pow(distance, 2.0);
+	number distance = calculate_distance(p1, p2);
+	number force = (grav_constant * (m1 * m2)) / pow(distance, 2.0);
 	return (vector_t) {
 		.x = force * ((p1.x - p2.x) / distance),
 		.y = force * ((p1.y - p2.y) / distance),
@@ -350,11 +352,11 @@ vector_t calculate_force_between(double grav_constant, vector_t p1, double m1, v
 	};
 }
 
-void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_constant, double theta) {
+void calculate_force_internal(octree_cell_t * cell, body_t * body, number grav_constant, number theta) {
 	switch (get_octree_cell_state(cell)) {
 		case INTERNAL: {
-			double distance = calculate_distance(cell->center_position, body->position);
-			double width = (cell->cell_size.x + cell->cell_size.y + cell->cell_size.z) / 3;
+			number distance = calculate_distance(cell->center_position, body->position);
+			number width = (cell->cell_size.x + cell->cell_size.y + cell->cell_size.z) / 3;
 			if ((width / distance) < theta) {
 				body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->center_position, cell->mass));
 			} else {
@@ -376,7 +378,7 @@ void calculate_force_internal(octree_cell_t * cell, body_t * body, double grav_c
 	}
 }
 
-void calculate_force(octree_cell_t * cell, body_t * body, double grav_constant, double theta) {
+void calculate_force(octree_cell_t * cell, body_t * body, number grav_constant, number theta) {
 	body->force = (vector_t) {
 		.x = 0.0,
 		.y = 0.0,
@@ -391,7 +393,7 @@ void calculate_force(octree_cell_t * cell, body_t * body, double grav_constant, 
 
 /* ----- System Definitions ----- */
 
-universe_t init_system(int num_points, double theta, double grav_constant) {
+universe_t init_system(int num_points, number theta, number grav_constant) {
 	body_t * bodies = malloc(sizeof(body_t) * num_points);
 
 	for (int i = 0; i < num_points; i ++) {
@@ -411,7 +413,7 @@ universe_t init_system(int num_points, double theta, double grav_constant) {
 	};
 }
 
-void simulate_universe(universe_t universe, double delta_time) {
+void simulate_universe(universe_t universe, number delta_time) {
 	octree_t * octree = create_octree(universe.bodies, universe.num_bodies);
 
 	for (int i = 0; i < universe.num_bodies; i ++) {
@@ -471,7 +473,7 @@ do for [i=1:int(STATS_blocks)] {\n\
    splot '%s' index (i-1) with points ls 2 ps 0.4 # for each datapoint plot the point\n\
 }\n"
 
-void generate_gnuplot_file(double time_step, char * file_name) {
+void generate_gnuplot_file(number time_step, char * file_name) {
 	int file = open(GNU_PLOT_FILE, O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, 0644);
 	if (file == -1) {
 		return;
@@ -505,19 +507,19 @@ int main(int argc, char ** argv) {
 		return EXIT_FAILURE;
 	}
 
-	double time_step = strtod(argv[2], &p);
+	number time_step = strtod(argv[2], &p);
 	if (*p != '\0') {
 		printf("Could not convert Time Step: \"%s\"\n", argv[2]);
 		return EXIT_FAILURE;
 	}
 
-	double max_time = strtod(argv[3], &p);
+	number max_time = strtod(argv[3], &p);
 	if (*p != '\0') {
 		printf("Could not convert Maximum Time: \"%s\"\n", argv[3]);
 		return EXIT_FAILURE;
 	}
 
-	double theta; 
+	number theta; 
 	if (argc >= 5) {
 		theta = strtod(argv[4], &p);
 		if (*p != '\0') {
@@ -528,7 +530,7 @@ int main(int argc, char ** argv) {
 		theta = DEFAULT_THETA;
 	}
 
-	double grav_constant; 
+	number grav_constant; 
 	if (argc >= 6) {
 		grav_constant = strtod(argv[5], &p);
 		if (*p != '\0') {
@@ -565,7 +567,7 @@ int main(int argc, char ** argv) {
 
 	plot_system("data.dat", universe, 1);
 	// Simulate Universe
-	double t = 0.0;
+	number t = 0.0;
 	while (t < max_time) {
 		simulate_universe(universe, time_step);
 		plot_system("data.dat", universe, 0);
