@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 
 /* ----- Constant Definitions ----- */
 
@@ -642,14 +643,17 @@ int main(int argc, char **argv)
 	plot_system("data.dat", universe, 1);
 	// Simulate Universe
 	number t = 0.0;
-	clock_t start = clock();
+	struct timeval start = {0};
+	gettimeofday(&start, NULL);
 	while (t < max_time)
 	{
 		simulate_universe(universe, time_step);
 		plot_system("data.dat", universe, 0);
 		t += time_step;
 	}
-	float timeInS = (float)(clock() - start) / CLOCKS_PER_SEC * 1000000;
+	struct timeval end = {0};
+	gettimeofday(&end, NULL);
+	float timeInS = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
 	FILE *file = fopen("N-BodyTime.csv", "a+");
 	fprintf(file, "%s, %d, %f\n", "Serial", num_bodies, timeInS);
 	fclose(file);
