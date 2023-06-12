@@ -20,13 +20,13 @@
 #endif
 
 #ifndef MAX_X
-#define MAX_X 1000.0
+#define MAX_X 10000.0
 #endif
 #ifndef MAX_Y
-#define MAX_Y 1000.0
+#define MAX_Y 10000.0
 #endif
 #ifndef MAX_Z
-#define MAX_Z 1000.0
+#define MAX_Z 10000.0
 #endif
 
 #ifndef MAX_INIT_VELOCITY 
@@ -39,7 +39,7 @@
 #define OUTPUT_PLOT 1
 #endif
 
-typedef float number;
+typedef double number;
 
 /* ----- Type Definitions ----- */
 
@@ -558,11 +558,12 @@ int main(int argc, char ** argv) {
 	// Generate Universe 
 	universe_t universe = init_system(num_bodies, theta, grav_constant);
 	printf(
-		"Simulating Universe with \n\t- %d Bodies\n\t- Gravitational Constant = %lf\n\t- From 0 to %lf using Time Step %lf\n", 
+		"Simulating Universe with \n\t- %d Bodies\n\t- Gravitational Constant = %lf\n\t- From 0 to %lf using Time Step %lf\n\t- Maximum Position (%lf, %lf, %lf)\n", 
 		num_bodies, 
 		grav_constant, 
 		max_time, 
-		time_step
+		time_step,
+		MAX_X, MAX_Y, MAX_Z
 	);
 
 	plot_system("data.dat", universe, 1);
