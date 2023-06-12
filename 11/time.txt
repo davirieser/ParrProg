@@ -1,0 +1,4 @@
+               Variant        mean       std
+ Num Samples                  5000      5000
+0             Parallel  244.540652  1.937997
+1               Serial   14.535766  0.090489
