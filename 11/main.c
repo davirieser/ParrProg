@@ -655,7 +655,7 @@ int main(int argc, char **argv)
 	gettimeofday(&end, NULL);
 	float timeInS = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1000000.0;
 	FILE *file = fopen("N-BodyTime.csv", "a+");
-	fprintf(file, "%s, %d, %f\n", "Serial", num_bodies, timeInS);
+	fprintf(file, "%s, %d, %f\n", "Parallel", num_bodies, timeInS);
 	fclose(file);
 
 	generate_gnuplot_file(max_time, time_step, "data.dat");
