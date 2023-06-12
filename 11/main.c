@@ -21,13 +21,13 @@
 #endif
 
 #ifndef MAX_X
-#define MAX_X 1000.0
+#define MAX_X 10000.0
 #endif
 #ifndef MAX_Y
-#define MAX_Y 1000.0
+#define MAX_Y 10000.0
 #endif
 #ifndef MAX_Z
-#define MAX_Z 1000.0
+#define MAX_Z 10000.0
 #endif
 
 #ifndef MAX_INIT_VELOCITY
@@ -40,7 +40,7 @@
 #define OUTPUT_PLOT 0
 #endif
 
-typedef float number;
+typedef double number;
 
 /* ----- Type Definitions ----- */
 
@@ -514,9 +514,10 @@ void plot_system(char *file_name, universe_t universe, bool truncate)
 
 /* ----- GnuPlot Generation Function ----- */
 
+#define ANIMATION_TIME 5 // seconds 
 #define GNU_PLOT_FILE "particle.plt"
 
-#define GNU_PLOT_HEADER "set terminal gif animate delay 10 # set gif to animate in a frame delay of 10 ms\n\
+#define GNU_PLOT_HEADER "set terminal gif animate delay %ld\n\
 set output 'output.gif' # write to the file output.gif\n\
 \n\
 set style line 2 lc rgb 'black' pt 7 # set line to be a filled circle of color black\n\
@@ -529,8 +530,7 @@ do for [i=1:int(STATS_blocks)] {\n\
    splot '%s' index (i-1) with points ls 2 ps 0.4 # for each datapoint plot the point\n\
 }\n"
 
-void generate_gnuplot_file(number time_step, char *file_name)
-{
+void generate_gnuplot_file(number max_time, number time_step, char * file_name) {
 	int file = open(GNU_PLOT_FILE, O_WRONLY | O_APPEND | O_CREAT | O_TRUNC, 0644);
 	if (file == -1)
 	{
@@ -538,9 +538,8 @@ void generate_gnuplot_file(number time_step, char *file_name)
 	}
 
 	int bytes;
-	char *contents;
-	if ((bytes = asprintf(&contents, GNU_PLOT_HEADER, file_name, MAX_X, MAX_Y, MAX_Z, file_name)) != -1)
-	{
+	char * contents;
+	if ((bytes = asprintf(&contents, GNU_PLOT_HEADER, lround((1000 * ANIMATION_TIME) / (max_time / time_step)), file_name, MAX_X, MAX_Y, MAX_Z, file_name)) != -1) {
 		write(file, contents, bytes);
 	}
 
@@ -633,11 +632,12 @@ int main(int argc, char **argv)
 	// Generate Universe
 	universe_t universe = init_system(num_bodies, theta, grav_constant);
 	printf(
-		"Simulating Universe with \n\t- %d Bodies\n\t- Gravitational Constant = %lf\n\t- From 0 to %lf using Time Step %lf\n",
-		num_bodies,
-		grav_constant,
-		max_time,
-		time_step);
+		"Simulating Universe with \n\t- %d Bodies\n\t- Gravitational Constant = %lf\n\t- From 0 to %lf using Time Step %lf\n", 
+		num_bodies, 
+		grav_constant, 
+		max_time, 
+		time_step
+	);
 
 	plot_system("data.dat", universe, 1);
 	// Simulate Universe
@@ -654,7 +654,7 @@ int main(int argc, char **argv)
 	fprintf(file, "%s, %d, %f\n", "Serial", num_bodies, timeInMs);
 	fclose(file);
 
-	generate_gnuplot_file(time_step, "data.dat");
+	generate_gnuplot_file(max_time, time_step, "data.dat");
 
 	cleanup_system(universe);
 
