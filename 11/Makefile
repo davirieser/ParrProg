@@ -9,9 +9,9 @@ OUTPUT_PLOT ?= 1
 PARALLEL ?= 1
 
 ifeq "$(PARALLEL)" "1"
-FLAGS=-lm -Wall -Wpedantic -fopenmp
+FLAGS=-lm -Wall -Wpedantic -fopenmp -O3
 else
-FLAGS=-lm -Wall -Wpedantic
+FLAGS=-lm -Wall -Wpedantic -O3
 endif
 
 %: %.c
