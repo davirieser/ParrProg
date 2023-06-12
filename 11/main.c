@@ -649,9 +649,9 @@ int main(int argc, char **argv)
 		plot_system("data.dat", universe, 0);
 		t += time_step;
 	}
-	float timeInMs = (float)(clock() - start) / CLOCKS_PER_SEC * 1000;
+	float timeInS = (float)(clock() - start) / CLOCKS_PER_SEC * 1000000;
 	FILE *file = fopen("N-BodyTime.csv", "a+");
-	fprintf(file, "%s, %d, %f\n", "Serial", num_bodies, timeInMs);
+	fprintf(file, "%s, %d, %f\n", "Serial", num_bodies, timeInS);
 	fclose(file);
 
 	generate_gnuplot_file(max_time, time_step, "data.dat");
