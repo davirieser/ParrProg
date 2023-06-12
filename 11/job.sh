@@ -13,4 +13,8 @@
 # Enforce exclusive node allocation, do not share with other jobs
 #SBATCH --exclusive
 
-./main 5000 1 100
+JOB=$1
+NUM_BODIES=$2
+TIME_STEPS=$3
+TOTAL_TIME=$4
+./${JOB} ${NUM_BODIES} ${TIME_STEPS} ${TOTAL_TIME}

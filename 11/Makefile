@@ -22,9 +22,9 @@ all_LCC:
 	touch main.c
 	$(MAKE) main_LCC
 
-main_LCC: main.c
-	@ $(CC) $^ -o $@ $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
-	sbatch job.sh
+main_LCC: 
+	@ $(CC) main.c -o main $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
+	sbatch job.sh main $(ARGS)
 
 %: %.c
 	@ $(CC) $^ -o $@ $(FLAGS) -DOUTPUT_PLOT=$(OUTPUT_PLOT)
