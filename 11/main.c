@@ -12,9 +12,8 @@
 
 /* ----- Constant Definitions ----- */
 
-// 6.674e-11
 #ifndef DEFAULT_GRAV_CONSTANT
-#define DEFAULT_GRAV_CONSTANT 1
+#define DEFAULT_GRAV_CONSTANT 6.674e-11
 #endif
 
 #ifndef DEFAULT_THETA
@@ -32,7 +31,7 @@
 #endif
 
 #ifndef MAX_INIT_VELOCITY
-#define MAX_INIT_VELOCITY 2
+#define MAX_INIT_VELOCITY 0
 #endif
 
 #define DEBUG_OCTREE 0
@@ -397,7 +396,7 @@ void calculate_force_internal(octree_cell_t *cell, body_t *body, number grav_con
 		number width = (cell->cell_size.x + cell->cell_size.y + cell->cell_size.z) / 3;
 		if ((width / distance) < theta)
 		{
-			body->force = add_vectors(body->force, calculate_force_between(grav_constant, cell->center_position, cell->mass, body->position, body->mass));
+			body->force = add_vectors(body->force, calculate_force_between(grav_constant, body->position, body->mass, cell->center_position, cell->mass));
 		}
 		else
 		{
@@ -448,7 +447,7 @@ universe_t init_system(int num_points, number theta, number grav_constant)
 			.position = generate_random_position(),
 			.velocity = generate_random_velocity(),
 			.force = (vector_t){.x = 0.0, .y = 0.0, .z = 0.0},
-			.mass = rand_positive_double(100),
+			.mass = 1000.0 + rand_positive_double(1000),
 		};
 	}
 
@@ -540,7 +539,7 @@ void generate_gnuplot_file(number max_time, number time_step, char * file_name) 
 
 	int bytes;
 	char * contents;
-	if ((bytes = asprintf(&contents, GNU_PLOT_HEADER, lround((1000 * ANIMATION_TIME) / (max_time / time_step)), file_name, MAX_X, MAX_Y, MAX_Z, file_name)) != -1) {
+	if ((bytes = asprintf(&contents, GNU_PLOT_HEADER, lround((100 * ANIMATION_TIME) / (max_time / time_step)), file_name, MAX_X, MAX_Y, MAX_Z, file_name)) != -1) {
 		write(file, contents, bytes);
 	}
 
