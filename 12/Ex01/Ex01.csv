@@ -1,0 +1,16 @@
+standard_a, 100000000, 304466
+strength_reduction_a, 100000000, 240994
+standard_b, 100000000, 276217
+strength_reduction_b, 100000000, 560096
+standard_c, 100000000, 484767
+strength_reduction_c, 100000000, 435543
+standard_d, 100000000, 573638
+strength_reduction_d, 100000000, 386903
+standard_e, 100000000, 489469
+strength_reduction_e, 100000000, 360417
+standard_f, 100000000, 878290
+strength_reduction_f, 100000000, 426160
+standard_g, 100000000, 303489
+strength_reduction_g_union, 100000000, 1513123
+strength_reduction_g_union2, 100000000, 863757
+strength_reduction_g_bits, 100000000, 257765
