@@ -32,9 +32,9 @@ void strength_reduction_g_bits();
 uint64_t benchmark(void *(*f)(void *), uint64_t N);
 struct time_t micros_to_time_str(uint64_t time);
 
-#define BASE_N ((uint64_t)1e10)
+#define BASE_N ((uint64_t)1e8)
 
-void main()
+int main()
 {
     uint64_t standard_a_time = benchmark((void *(*)(void *))standard_a, BASE_N);
     uint64_t strength_reduction_a_time = benchmark((void *(*)(void *))strength_reduction_a, BASE_N);
@@ -84,7 +84,7 @@ void main()
         fwrite(buffer, sizeof(char), bufferSize, file);
     }
     fclose(file);
-    return;
+    return 0;
 }
 
 struct time_t micros_to_time_str(uint64_t time)

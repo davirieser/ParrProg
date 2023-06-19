@@ -1,0 +1,24 @@
+                                     Variant         mean                                    std                         
+ Num Iterations                                   1000000      5000000      100000000    1000000     5000000    100000000
+0                                 standard_a          NaN          NaN  136088.882353        NaN         NaN  2445.401086
+1                       strength_reduction_a          NaN          NaN  136149.911765        NaN         NaN  2862.906124
+
+2                                 standard_b          NaN          NaN  136544.264706        NaN         NaN  4143.398841
+3                       strength_reduction_b          NaN          NaN  135090.735294        NaN         NaN  1756.258149
+
+4                                 standard_c          NaN          NaN  135605.941176        NaN         NaN  3112.079632
+5                       strength_reduction_c          NaN          NaN  136331.529412        NaN         NaN  3587.765957
+
+6                                 standard_d          NaN          NaN  136800.000000        NaN         NaN  4413.684951
+7                       strength_reduction_d          NaN          NaN  135497.852941        NaN         NaN  2631.626368
+
+8                                 standard_e          NaN  6796.970588            NaN        NaN  211.458784          NaN
+9                       strength_reduction_e          NaN  6742.735294            NaN        NaN  121.544183          NaN
+
+10                                standard_f  1342.470588          NaN            NaN  25.975787         NaN          NaN
+11                      strength_reduction_f  1360.205882          NaN            NaN  67.046243         NaN          NaN
+
+12                                standard_g          NaN          NaN  135787.352941        NaN         NaN  3053.933280
+13                 strength_reduction_g_bits          NaN          NaN  135476.882353        NaN         NaN  2573.732118
+14                strength_reduction_g_union          NaN          NaN  135585.911765        NaN         NaN  3450.173859
+15               strength_reduction_g_union2          NaN          NaN  135297.735294        NaN         NaN  2251.315216
