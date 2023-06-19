@@ -4,7 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-struct time
+struct time_t
 {
     uint16_t hours;
     uint8_t minutes;
@@ -30,9 +30,9 @@ void strength_reduction_g_union();
 void strength_reduction_g_union2();
 void strength_reduction_g_bits();
 uint64_t benchmark(void *(*f)(void *), uint64_t N);
-struct time get_time(uint64_t time);
+struct time_t micros_to_time_str(uint64_t time);
 
-#define BASE_N ((uint64_t)1e9)
+#define BASE_N ((uint64_t)1e10)
 
 void main()
 {
@@ -53,7 +53,7 @@ void main()
     uint64_t strength_reduction_g_time_union2 = benchmark((void *(*)(void *))strength_reduction_g_union2, BASE_N);
     uint64_t strength_reduction_g_time_bits = benchmark((void *(*)(void *))strength_reduction_g_bits, BASE_N);
 
-    const uint32_t maxBufferSize = 1024;
+    const uint32_t maxBufferSize = 2048;
     uint32_t bufferSize = 0;
     char buffer[maxBufferSize];
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_a, %lu, %lu\n", BASE_N, standard_a_time);
@@ -64,18 +64,18 @@ void main()
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_c, %lu, %lu\n", BASE_N, strength_reduction_c_time);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_d, %lu, %lu\n", BASE_N, standard_d_time);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_d, %lu, %lu\n", BASE_N, strength_reduction_d_time);
-    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_e, %lu, %lu\n", BASE_N, standard_e_time);
-    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_e, %lu, %lu\n", BASE_N, strength_reduction_e_time);
-    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_f, %lu, %lu\n", BASE_N, standard_f_time);
-    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_f, %lu, %lu\n", BASE_N, strength_reduction_f_time);
+    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_e, %lu, %lu\n", BASE_N / 20, standard_e_time);
+    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_e, %lu, %lu\n", BASE_N / 20, strength_reduction_e_time);
+    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_f, %lu, %lu\n", BASE_N / 100, standard_f_time);
+    bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_f, %lu, %lu\n", BASE_N / 100, strength_reduction_f_time);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "standard_g, %lu, %lu\n", BASE_N, standard_g_time);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_g_union, %lu, %lu\n", BASE_N, strength_reduction_g_time_union);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_g_union2, %lu, %lu\n", BASE_N, strength_reduction_g_time_union2);
     bufferSize += snprintf(buffer + bufferSize, maxBufferSize - bufferSize, "strength_reduction_g_bits, %lu, %lu\n", BASE_N, strength_reduction_g_time_bits);
-    int32_t remainingBufferSize = maxBufferSize - bufferSize;
+    int32_t remainingBufferSize = (int32_t)maxBufferSize - bufferSize;
 
     FILE *file = fopen("Ex01.csv", "a+");
-    if (remainingBufferSize < 0)
+    if (remainingBufferSize <= 0)
     {
         fprintf(file, "buffer overflow by %d bytes\n", -remainingBufferSize);
     }
@@ -87,9 +87,9 @@ void main()
     return;
 }
 
-struct time get_time(uint64_t time)
+struct time_t micros_to_time_str(uint64_t time)
 {
-    struct time t;
+    struct time_t t;
     t.hours = time / 3600000000;
     t.minutes = (time % 3600000000) / 60000000;
     t.seconds = (time % 60000000) / 1000000;
@@ -119,6 +119,7 @@ void standard_a()
     unsigned c2 = 32 * c1;
 }
 
+// Sould be applied if performing a multiplication is more expensive than a shift
 void strength_reduction_a()
 {
     unsigned c1 = 7;
@@ -131,6 +132,7 @@ void standard_b()
     unsigned c2 = 15 * c1;
 }
 
+// Should be applied if performing a multiplication is more expensive than a shift and a subtraction
 void strength_reduction_b()
 {
     unsigned c1 = 7;
@@ -143,6 +145,7 @@ void standard_c()
     unsigned c2 = 96 * c1;
 }
 
+// Should be applied if performing a multiplication is more expensive than two shifts and an addition
 void strength_reduction_c()
 {
     unsigned c1 = 7;
@@ -155,6 +158,7 @@ void standard_d()
     unsigned c2 = 0.125 * c1;
 }
 
+// Should be applied if performing a multiplication is more expensive than a shift
 void strength_reduction_d()
 {
     unsigned c1 = 7;
@@ -172,6 +176,7 @@ void standard_e()
     }
 }
 
+// Should be applied unless there is something that increases the performance of a ++ and multiplication operation to work faster than a single +=5
 void strength_reduction_e()
 {
     unsigned N = 100;
@@ -193,6 +198,8 @@ void standard_f()
     }
 }
 
+// Should be applied if pointer increments are faster than accessing the array with an index and if the division is more expensive than a multiplication
+// Unless there is a big overhead for definig a an additional pointer and 2 constants.
 void strength_reduction_f()
 {
     unsigned N = 100;
@@ -223,6 +230,7 @@ union float_bits
     } components;
 };
 
+// Creating a union is a overhead that is far bigger than a multiplication
 void strength_reduction_g_union()
 {
     float c1 = 7;
@@ -231,6 +239,7 @@ void strength_reduction_g_union()
     float c2 = c2_bits.f;
 }
 
+// Creating a union is a overhead that is far bigger than a multiplication
 void strength_reduction_g_union2()
 {
 
@@ -239,6 +248,7 @@ void strength_reduction_g_union2()
     float c2 = c1.f;
 }
 
+// Due to the additional overhead of creating a uint32_t variable this version is also slower.
 void strength_reduction_g_bits()
 {
     float c1 = 7;
